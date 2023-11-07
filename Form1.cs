@@ -8,7 +8,9 @@ namespace Paint
         Color[] defaultColors = new Color[] {
             Color.Red, Color.Blue, Color.Black,
             Color.Yellow, Color.Green, Color.White,
-            Color.Orange, Color.Salmon, Color.Purple
+            Color.Orange, Color.Salmon, Color.Purple,
+            Color.Orchid, Color.AliceBlue, Color.Aquamarine,
+            Color.Plum, Color.Beige, Color.Bisque,
         };
 
         public Form1()
@@ -22,6 +24,7 @@ namespace Paint
             foreach (Color color in defaultColors)
             {
                 ColorButton colorButton = new ColorButton(color);
+                colorButton.Click += ButtonColor_Click;
                 colorsBox.Controls.Add(colorButton);
             }
         }
@@ -31,6 +34,7 @@ namespace Paint
             if (colorDialog.ShowDialog() == DialogResult.OK)
             {
                 ColorButton newColorButton = new ColorButton(colorDialog.Color);
+                newColorButton.Click += ButtonColor_Click;
 
                 ColorButton? buttonToRemove = null;
 
@@ -54,6 +58,13 @@ namespace Paint
                 colorsBox.Controls.Add(newColorButton);
                 colorsBox.Controls.SetChildIndex(newColorButton, 1);
             }
+        }
+
+        private void ButtonColor_Click(object sender, EventArgs e)
+        {
+            Color selectColor = ((ColorButton)sender).GetColor();
+            buttonColorPrevious.SetColor(buttonColorSelect.BackColor);
+            buttonColorSelect.SetColor(selectColor);
         }
     }
 }

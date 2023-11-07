@@ -1,4 +1,6 @@
-﻿namespace Paint
+﻿using Paint.components;
+
+namespace Paint
 {
     partial class Form1
     {
@@ -36,8 +38,12 @@
             colorsBox = new FlowLayoutPanel();
             buttonNewColor = new Button();
             colorDialog = new ColorDialog();
+            groupBoxColors = new GroupBox();
+            groupBox1 = new GroupBox();
+            groupBox2 = new GroupBox();
             menuStrip1.SuspendLayout();
             colorsBox.SuspendLayout();
+            groupBoxColors.SuspendLayout();
             SuspendLayout();
             // 
             // menuStrip1
@@ -73,9 +79,9 @@
             // 
             colorsBox.AutoScroll = true;
             colorsBox.Controls.Add(buttonNewColor);
-            colorsBox.Location = new Point(12, 31);
+            colorsBox.Location = new Point(48, 27);
             colorsBox.Name = "colorsBox";
-            colorsBox.Size = new Size(156, 92);
+            colorsBox.Size = new Size(175, 92);
             colorsBox.TabIndex = 2;
             // 
             // buttonNewColor
@@ -90,12 +96,70 @@
             buttonNewColor.UseVisualStyleBackColor = true;
             buttonNewColor.Click += buttonNewColor_Click;
             // 
+            // groupBoxColors
+            // 
+            groupBoxColors.Controls.Add(buttonColorPrevious);
+            groupBoxColors.Controls.Add(colorsBox);
+            groupBoxColors.Controls.Add(buttonColorSelect);
+            groupBoxColors.Font = new Font("Cascadia Mono", 10.2F, FontStyle.Regular, GraphicsUnit.Point);
+            groupBoxColors.Location = new Point(424, 58);
+            groupBoxColors.Name = "groupBoxColors";
+            groupBoxColors.Size = new Size(229, 125);
+            groupBoxColors.TabIndex = 4;
+            groupBoxColors.TabStop = false;
+            groupBoxColors.Text = "Colors";
+            // 
+            // buttonColorPrevious
+            // 
+            buttonColorPrevious.BackColor = Color.White;
+            buttonColorPrevious.FlatStyle = FlatStyle.Flat;
+            buttonColorPrevious.ForeColor = Color.Black;
+            buttonColorPrevious.Location = new Point(6, 76);
+            buttonColorPrevious.Name = "buttonColorPrevious";
+            buttonColorPrevious.Size = new Size(30, 30);
+            buttonColorPrevious.TabIndex = 5;
+            buttonColorPrevious.UseVisualStyleBackColor = false;
+            buttonColorPrevious.Click += ButtonColor_Click;
+            // 
+            // buttonColorSelect
+            // 
+            buttonColorSelect.BackColor = Color.Black;
+            buttonColorSelect.FlatStyle = FlatStyle.Flat;
+            buttonColorSelect.ForeColor = Color.Black;
+            buttonColorSelect.Location = new Point(6, 30);
+            buttonColorSelect.Name = "buttonColorSelect";
+            buttonColorSelect.Size = new Size(30, 30);
+            buttonColorSelect.TabIndex = 3;
+            buttonColorSelect.UseVisualStyleBackColor = false;
+            // 
+            // groupBox1
+            // 
+            groupBox1.Font = new Font("Cascadia Mono", 10.2F, FontStyle.Regular, GraphicsUnit.Point);
+            groupBox1.Location = new Point(566, 237);
+            groupBox1.Name = "groupBox1";
+            groupBox1.Size = new Size(128, 62);
+            groupBox1.TabIndex = 5;
+            groupBox1.TabStop = false;
+            groupBox1.Text = "Template";
+            // 
+            // groupBox2
+            // 
+            groupBox2.Font = new Font("Cascadia Mono", 10.2F, FontStyle.Regular, GraphicsUnit.Point);
+            groupBox2.Location = new Point(219, 58);
+            groupBox2.Name = "groupBox2";
+            groupBox2.Size = new Size(199, 125);
+            groupBox2.TabIndex = 6;
+            groupBox2.TabStop = false;
+            groupBox2.Text = "Tools";
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1056, 608);
-            Controls.Add(colorsBox);
+            Controls.Add(groupBox2);
+            Controls.Add(groupBox1);
+            Controls.Add(groupBoxColors);
             Controls.Add(menuStrip1);
             MainMenuStrip = menuStrip1;
             Name = "Form1";
@@ -103,6 +167,7 @@
             menuStrip1.ResumeLayout(false);
             menuStrip1.PerformLayout();
             colorsBox.ResumeLayout(false);
+            groupBoxColors.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
         }
@@ -125,5 +190,10 @@
         private FlowLayoutPanel colorsBox;
         private Button buttonNewColor;
         private ColorDialog colorDialog;
+        private ColorButton buttonColorSelect;
+        private GroupBox groupBoxColors;
+        private ColorButton buttonColorPrevious;
+        private GroupBox groupBox1;
+        private GroupBox groupBox2;
     }
 }

@@ -16,7 +16,7 @@ namespace Paint.components
 
         private void IntializeProperties()
         {
-            FlatAppearance.BorderSize = 0;
+            FlatAppearance.BorderSize = 1;
             FlatStyle = FlatStyle.Flat;
             ForeColor = Color.Black;
             Location = new Point(3, 3);
