@@ -16,12 +16,12 @@ namespace Paint.components
 
         private void IntializeProperties()
         {
+            ForeColor = Color.Black;
             FlatAppearance.BorderSize = 1;
             FlatStyle = FlatStyle.Flat;
             ForeColor = Color.Black;
             Location = new Point(3, 3);
             Size = new Size(24, 24);
-            TabIndex = 0;
             UseVisualStyleBackColor = false;
         }
 
