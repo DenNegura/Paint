@@ -1,4 +1,5 @@
 using Paint.components;
+using System.Drawing;
 
 namespace Paint
 {

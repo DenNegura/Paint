@@ -37,7 +37,11 @@ namespace Paint
             groupBoxColors = new ColorGroupBox();
             groupBox1 = new GroupBox();
             groupBox2 = new GroupBox();
+            panel1 = new Panel();
+            canvas = new Canvas();
             menuStrip1.SuspendLayout();
+            panel1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)canvas).BeginInit();
             SuspendLayout();
             // 
             // menuStrip1
@@ -72,7 +76,7 @@ namespace Paint
             // groupBoxColors
             // 
             groupBoxColors.Font = new Font("Cascadia Mono", 10.2F, FontStyle.Regular, GraphicsUnit.Point);
-            groupBoxColors.Location = new Point(491, 58);
+            groupBoxColors.Location = new Point(806, 31);
             groupBoxColors.Name = "groupBoxColors";
             groupBoxColors.Size = new Size(229, 125);
             groupBoxColors.TabIndex = 7;
@@ -82,7 +86,7 @@ namespace Paint
             // groupBox1
             // 
             groupBox1.Font = new Font("Cascadia Mono", 10.2F, FontStyle.Regular, GraphicsUnit.Point);
-            groupBox1.Location = new Point(566, 237);
+            groupBox1.Location = new Point(662, 58);
             groupBox1.Name = "groupBox1";
             groupBox1.Size = new Size(128, 62);
             groupBox1.TabIndex = 5;
@@ -92,18 +96,36 @@ namespace Paint
             // groupBox2
             // 
             groupBox2.Font = new Font("Cascadia Mono", 10.2F, FontStyle.Regular, GraphicsUnit.Point);
-            groupBox2.Location = new Point(219, 58);
+            groupBox2.Location = new Point(406, 31);
             groupBox2.Name = "groupBox2";
             groupBox2.Size = new Size(199, 125);
             groupBox2.TabIndex = 6;
             groupBox2.TabStop = false;
             groupBox2.Text = "Tools";
             // 
+            // panel1
+            // 
+            panel1.Controls.Add(canvas);
+            panel1.Location = new Point(113, 178);
+            panel1.Name = "panel1";
+            panel1.Size = new Size(864, 418);
+            panel1.TabIndex = 8;
+            // 
+            // canvas
+            // 
+            canvas.BackColor = Color.White;
+            canvas.Location = new Point(3, 3);
+            canvas.Name = "canvas";
+            canvas.Size = new Size(434, 197);
+            canvas.TabIndex = 0;
+            canvas.TabStop = false;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1056, 608);
+            Controls.Add(panel1);
             Controls.Add(groupBox2);
             Controls.Add(groupBox1);
             Controls.Add(groupBoxColors);
@@ -113,6 +135,8 @@ namespace Paint
             Text = "Form1";
             menuStrip1.ResumeLayout(false);
             menuStrip1.PerformLayout();
+            panel1.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)canvas).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -135,5 +159,7 @@ namespace Paint
         private ColorGroupBox groupBoxColors;
         private GroupBox groupBox1;
         private GroupBox groupBox2;
+        private Panel panel1;
+        private Canvas canvas;
     }
 }
