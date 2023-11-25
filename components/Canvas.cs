@@ -5,9 +5,176 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace Paint.components
+namespace Paint
 {
-    internal class Canvas: PictureBox
+    internal partial class Canvas: PictureBox
+    {
+
+        Point beginMouseLocation;
+
+        Point endMouseLocation;
+
+        Bitmap lastBitmap;
+
+        public Canvas() 
+        {
+            bitmap = new Bitmap(this.Width, this.Height);
+            graphics = Graphics.FromImage(bitmap);
+            redo = new Stack<Object>();
+            undo = new Stack<Object>();
+            this.Image = bitmap;
+            InitializeHendlres();
+        }
+
+        private void InitializeHendlres()
+        {
+            this.MouseDown += new MouseEventHandler(this.Canvas_MouseDown);
+            this.MouseMove += new MouseEventHandler(this.Canvas_MouseMove);
+            this.MouseUp += new MouseEventHandler(this.Canvas_MouseUp);
+        }
+
+        private void Canvas_MouseDown(object sender, MouseEventArgs e)
+        {
+            beginMouseLocation = e.Location;
+            ResizeMouseDown(e);
+            CrookedLineMouseDown();
+            lastBitmap = (Bitmap) bitmap.Clone();
+        }
+
+
+        private void Canvas_MouseMove(object sender, MouseEventArgs e)
+        {
+            int width = this.Width;
+            int height = this.Height;
+
+            ResizeMouseMove(e);
+           
+            if (width != this.Width || height != this.Height)
+            {
+                ResizeBitmap();
+            }
+
+            CrookedLineMouseMove(e);
+        }
+
+      
+        private void Canvas_MouseUp(object sender, MouseEventArgs e)
+        {
+            endMouseLocation = e.Location;
+            ResizeMouseUp(e);
+            CrookedLineMouseUp();
+            if(!beginMouseLocation.Equals(endMouseLocation))
+            {
+                SaveState(lastBitmap);
+            } 
+        }
+    }
+
+    // bitmap 
+    partial class Canvas
+    {
+        private Bitmap bitmap;
+
+        private Graphics graphics;
+
+        
+        public Size Size
+        {
+            get => new Size(Width, Height);
+            set
+            {
+                base.Size = value;
+                ResizeBitmap();
+                SaveState(bitmap);
+            }
+        }
+
+        private void ResizeBitmap()
+        {
+            Bitmap oldBitmap = (Bitmap) bitmap.Clone();
+            bitmap = new Bitmap(Width, Height);
+            graphics = Graphics.FromImage(bitmap);
+            graphics.DrawImage(oldBitmap, 0, 0);
+            Image = bitmap;
+        }
+
+        private void changeBitmap(Bitmap newBitmap)
+        {
+            bitmap = newBitmap;
+
+            if(newBitmap.Width != Width || newBitmap.Height != Height)
+            {
+                base.Size = newBitmap.Size;
+            }
+            
+            graphics = Graphics.FromImage(bitmap);
+            Image = bitmap;
+        }
+    }
+
+    // drow crooked line 
+    partial class Canvas
+    {
+        private bool isDrawCrookedLine = false;
+
+        List<Point> crookedLine;
+        private class CrookedLine
+        {
+            List<Point> Points;
+
+            public CrookedLine()
+            {
+                Points = new List<Point>();
+            }
+            
+            public void add(Point point)
+            {
+                Points.Add(point);
+            }
+
+            public List<Point> Get()
+            {
+                return Points;
+            }
+            public void Clear() 
+            { 
+                Points = new List<Point>(); 
+            }
+        }
+
+
+        private void CrookedLineMouseDown()
+        {
+            if(!isResize)
+            {
+                isDrawCrookedLine = true;
+                crookedLine = new List<Point>();
+            } 
+        }
+
+        private void CrookedLineMouseUp()
+        {
+            isDrawCrookedLine = false;
+           
+        }
+
+        private void CrookedLineMouseMove(MouseEventArgs e)
+        {
+            if(isDrawCrookedLine)
+            {
+
+                crookedLine.Add(e.Location);
+                if (crookedLine.Count > 1)
+                {
+                    graphics.DrawLines(new Pen(Color.Red, 4), crookedLine.ToArray());
+                    Image = bitmap;
+                }
+            }
+        }
+    }
+
+    // resize property
+    partial class Canvas
     {
         private readonly int MIN_HEIGHT = 50;
 
@@ -22,20 +189,6 @@ namespace Paint.components
         private bool isResizeX = false;
 
         private bool isResizeY = false;
-
-        public Canvas() 
-        {
-            InitializeProperties();
-        }
-
-        private void InitializeProperties()
-        {
-            BackColor = Color.White;
-            this.MouseDown += new MouseEventHandler(this.Function_MouseDown);
-            this.MouseMove += new MouseEventHandler(this.pictureBox1_MouseMove);
-            this.MouseUp += new MouseEventHandler(this.pictureBox1_MouseUp);
-        }
-
         private bool IsResizeByX(int x)
         {
             return x >= this.Width - SIZE_GRIP;
@@ -46,23 +199,24 @@ namespace Paint.components
             return y >= this.Height - SIZE_GRIP;
         }
 
-        private void Function_MouseDown(object sender, MouseEventArgs e)
+        private void ResizeMouseDown(MouseEventArgs e)
         {
-            isResize = true;
             currentMousePos = e.Location;
             this.Capture = true;
 
             if (IsResizeByX(e.X) && IsResizeByY(e.Y))
             {
-                isResizeX = isResizeY = true;
+                isResize = isResizeX = isResizeY = true;
             }
             else if (IsResizeByX(e.X))
             {
+                isResize = true;
                 isResizeX = true;
                 isResizeY = false;
             }
             else if (IsResizeByY(e.Y))
             {
+                isResize = true;
                 isResizeY = true;
                 isResizeX = false;
             }
@@ -73,8 +227,6 @@ namespace Paint.components
                 isResizeX = false;
             }
         }
-
-
         private int GetResizeWidth(int x)
         {
             int width = this.Width + x - currentMousePos.X;
@@ -83,7 +235,7 @@ namespace Paint.components
                 currentMousePos.X = x;
                 return width;
             }
-            return this.Width; 
+            return this.Width;
         }
 
         private int GetResizeHeight(int y)
@@ -97,7 +249,7 @@ namespace Paint.components
             return this.Height;
         }
 
-        private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
+        private void ResizeMouseMove(MouseEventArgs e)
         {
             if (IsResizeByX(e.X) && IsResizeByY(e.Y))
             {
@@ -127,17 +279,49 @@ namespace Paint.components
                 {
                     this.Width = GetResizeWidth(e.X);
                 }
-                else if(isResizeY) 
+                else if (isResizeY)
                 {
-                    this.Height = GetResizeHeight(e.Y);                    
+                    this.Height = GetResizeHeight(e.Y);
                 }
             }
         }
 
-        private void pictureBox1_MouseUp(object sender, MouseEventArgs e)
+        private void ResizeMouseUp(MouseEventArgs e)
         {
             isResize = isResizeX = isResizeY = false;
             this.Capture = false;
+        }
+    }
+
+    // redo / undo options
+    partial class Canvas
+    {
+        private Stack<Object> redo;
+
+        private Stack<Object> undo;
+
+        private void SaveState(Bitmap bitmap)
+        {
+            redo.Push(bitmap.Clone());
+        }
+
+        public void Redo()
+        {
+            if(redo.Count != 0)
+            {
+                Bitmap nextBitmap = (Bitmap)redo.Pop();
+                undo.Push(bitmap.Clone());
+                changeBitmap(nextBitmap);
+            } 
+        }
+        public void Undo() 
+        { 
+            if(undo.Count != 0)
+            {
+                Bitmap nextBitmap = (Bitmap)undo.Pop();
+                redo.Push(bitmap.Clone());
+                changeBitmap(nextBitmap);
+            }
         }
     }
 }

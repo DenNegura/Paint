@@ -1,10 +1,4 @@
 ﻿using Paint.Properties;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Paint.components
 {
@@ -63,7 +57,7 @@ namespace Paint.components
             // 
             // buttonNewColor
             // 
-            buttonNewColor.BackgroundImage = Resources.ImageAdd;
+            buttonNewColor.BackgroundImage = Resources.Add;
             buttonNewColor.FlatAppearance.BorderSize = 0;
             buttonNewColor.FlatStyle = FlatStyle.Flat;
             buttonNewColor.Location = new Point(3, 3);

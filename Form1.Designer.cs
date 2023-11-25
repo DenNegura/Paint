@@ -34,14 +34,18 @@ namespace Paint
             toolStripMenuItem1 = new ToolStripMenuItem();
             toolStripMenuItem2 = new ToolStripMenuItem();
             toolStripMenuItem3 = new ToolStripMenuItem();
+            addImageToolStripMenuItem = new ToolStripMenuItem();
             groupBoxColors = new ColorGroupBox();
-            groupBox1 = new GroupBox();
+            groupBoxTools = new ToolGroupBox();
             groupBox2 = new GroupBox();
             panel1 = new Panel();
             canvas = new Canvas();
+            groupBoxSize = new SizeGroupBox();
             menuStrip1.SuspendLayout();
             panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)canvas).BeginInit();
+            //((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
+            groupBoxSize.SuspendLayout();
             SuspendLayout();
             // 
             // menuStrip1
@@ -56,7 +60,7 @@ namespace Paint
             // 
             // toolStripMenuItem1
             // 
-            toolStripMenuItem1.DropDownItems.AddRange(new ToolStripItem[] { toolStripMenuItem2, toolStripMenuItem3 });
+            toolStripMenuItem1.DropDownItems.AddRange(new ToolStripItem[] { toolStripMenuItem2, toolStripMenuItem3, addImageToolStripMenuItem });
             toolStripMenuItem1.Name = "toolStripMenuItem1";
             toolStripMenuItem1.Size = new Size(46, 24);
             toolStripMenuItem1.Text = "File";
@@ -64,14 +68,20 @@ namespace Paint
             // toolStripMenuItem2
             // 
             toolStripMenuItem2.Name = "toolStripMenuItem2";
-            toolStripMenuItem2.Size = new Size(126, 26);
+            toolStripMenuItem2.Size = new Size(166, 26);
             toolStripMenuItem2.Text = "Save";
             // 
             // toolStripMenuItem3
             // 
             toolStripMenuItem3.Name = "toolStripMenuItem3";
-            toolStripMenuItem3.Size = new Size(126, 26);
+            toolStripMenuItem3.Size = new Size(166, 26);
             toolStripMenuItem3.Text = "Clear";
+            // 
+            // addImageToolStripMenuItem
+            // 
+            addImageToolStripMenuItem.Name = "addImageToolStripMenuItem";
+            addImageToolStripMenuItem.Size = new Size(166, 26);
+            addImageToolStripMenuItem.Text = "Add Image";
             // 
             // groupBoxColors
             // 
@@ -83,20 +93,21 @@ namespace Paint
             groupBoxColors.TabStop = false;
             groupBoxColors.Text = "Colors";
             // 
-            // groupBox1
+            // groupBoxTools
             // 
-            groupBox1.Font = new Font("Cascadia Mono", 10.2F, FontStyle.Regular, GraphicsUnit.Point);
-            groupBox1.Location = new Point(662, 58);
-            groupBox1.Name = "groupBox1";
-            groupBox1.Size = new Size(128, 62);
-            groupBox1.TabIndex = 5;
-            groupBox1.TabStop = false;
-            groupBox1.Text = "Template";
+            groupBoxTools.Font = new Font("Cascadia Mono", 10.2F, FontStyle.Regular, GraphicsUnit.Point);
+            groupBoxTools.Location = new Point(297, 31);
+            groupBoxTools.Name = "groupBoxTools";
+            groupBoxTools.Size = new Size(229, 125);
+            groupBoxTools.TabIndex = 7;
+            groupBoxTools.TabStop = false;
+            groupBoxTools.Text = "Tools";
+            groupBoxTools.Click += SelectTool;
             // 
             // groupBox2
             // 
             groupBox2.Font = new Font("Cascadia Mono", 10.2F, FontStyle.Regular, GraphicsUnit.Point);
-            groupBox2.Location = new Point(406, 31);
+            groupBox2.Location = new Point(549, 31);
             groupBox2.Name = "groupBox2";
             groupBox2.Size = new Size(199, 125);
             groupBox2.TabIndex = 6;
@@ -119,16 +130,28 @@ namespace Paint
             canvas.Size = new Size(434, 197);
             canvas.TabIndex = 0;
             canvas.TabStop = false;
+           
+            // 
+            // groupBoxSize
+            // 
+            groupBoxSize.Font = new Font("Cascadia Mono", 10.2F, FontStyle.Regular, GraphicsUnit.Point);
+            groupBoxSize.Location = new Point(217, 31);
+            groupBoxSize.Name = "groupBoxSize";
+            groupBoxSize.Size = new Size(74, 125);
+            groupBoxSize.TabIndex = 11;
+            groupBoxSize.TabStop = false;
+            groupBoxSize.Text = "Size";
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1056, 608);
+            Controls.Add(groupBoxSize);
             Controls.Add(panel1);
             Controls.Add(groupBox2);
-            Controls.Add(groupBox1);
             Controls.Add(groupBoxColors);
+            Controls.Add(groupBoxTools);
             Controls.Add(menuStrip1);
             MainMenuStrip = menuStrip1;
             Name = "Form1";
@@ -137,6 +160,8 @@ namespace Paint
             menuStrip1.PerformLayout();
             panel1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)canvas).EndInit();
+            //((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
+            groupBoxSize.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
         }
@@ -157,9 +182,11 @@ namespace Paint
         private ToolStripButton toolStripButton3;
         private ToolStripButton toolStripButton4;
         private ColorGroupBox groupBoxColors;
-        private GroupBox groupBox1;
+        private ToolGroupBox groupBoxTools;
         private GroupBox groupBox2;
         private Panel panel1;
         private Canvas canvas;
+        private ToolStripMenuItem addImageToolStripMenuItem;
+        private SizeGroupBox groupBoxSize;
     }
 }
