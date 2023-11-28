@@ -58,6 +58,7 @@ namespace Paint.components
             {
                 sizeCombobox.Items.Add(size);
             }
+            sizeCombobox.SelectedItem = sizeCombobox.Items[1];
         }
     }
 }

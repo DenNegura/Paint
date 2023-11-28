@@ -35,5 +35,15 @@ namespace Paint
                 canvas.Undo();
             }
         }
+
+        private void changeColor()
+        {
+            
+        }
+
+        private void changeDraw()
+        {
+
+        }
     }
 }
