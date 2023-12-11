@@ -11,9 +11,9 @@ namespace Paint.components
     {
         public new Image? Image { get { return BackgroundImage; } set { BackgroundImage = value; } }
 
-        public ImageButton(Image image)
-        { 
-            Image = image;
+
+        public ImageButton()
+        {
             ImageAlign = ContentAlignment.MiddleCenter;
             BackgroundImageLayout = ImageLayout.Stretch;
             FlatAppearance.BorderSize = 0;

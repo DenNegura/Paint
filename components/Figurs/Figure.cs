@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Paint.components.Drawable;
 
 namespace Paint.components.Figurs
 {
@@ -81,6 +82,11 @@ namespace Paint.components.Figurs
         public Bitmap GetFirstState()
         {
             return firstBitmap;
+        }
+
+        public void Draw()
+        {
+            throw new NotImplementedException();
         }
     }
 }

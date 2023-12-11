@@ -1,77 +1,82 @@
 ﻿using Paint.components.Canvas;
+using Paint.components.Drawable;
 using Paint.components.Figurs;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+using Paint.components.Tools;
+using System.Xml;
 
 namespace Paint
 {
     internal partial class Canvas: PictureBox
     {
 
-        Point beginMouseLocation;
+        Point beginMouseLocation; // позиция мыши при нажатии
 
-        Point endMouseLocation;
+        private Bitmap bitmap; // основной bitmap
 
-        private Bitmap bitmap;
+        private Bitmap drawBitmap; // bitmap используемый в процессе рисования
 
-        private Graphics graphics;
+        private Graphics graphics; 
 
-        StateHistory<Bitmap> bitmapHistory;
+        private StateHistory<Bitmap> bitmapHistory; // запоминает сосотояние bitmap'ов, функции redo undo
 
         public Canvas() 
         {
-            bitmapHistory = new StateHistory<Bitmap>();   
+            bitmapHistory = new StateHistory<Bitmap>(20);  
             bitmap = new Bitmap(this.Width, this.Height);
             graphics = Graphics.FromImage(bitmap);
             this.Image = bitmap;
-            InitializeHendlres();
-        }
 
-        private void InitializeHendlres()
-        {
             this.MouseDown += new MouseEventHandler(this.Canvas_MouseDown);
             this.MouseMove += new MouseEventHandler(this.Canvas_MouseMove);
             this.MouseUp += new MouseEventHandler(this.Canvas_MouseUp);
         }
 
+        // Оброботчик события нажатия мыши на канвас
         private void Canvas_MouseDown(object sender, MouseEventArgs e)
         {
             beginMouseLocation = e.Location;
-            ResizeMouseDown(e);
-            CrookedLineMouseDown(e);
             bitmapHistory.SetCurrentState(bitmap);
+
+            if (isFillMode)
+            {
+                Fill(e.Location, pen.Color);
+            }
+            else
+            {
+                ResizeMouseDown(e);
+
+                if (!isResize)
+                {
+                    DrawMouseDown(e);
+                }
+            }
         }
 
-
+        // Обработчик события перетаскивания мыши
         private void Canvas_MouseMove(object sender, MouseEventArgs e)
         {
-            int width = this.Width;
-            int height = this.Height;
-
             ResizeMouseMove(e);
-           
-            if (width != this.Width || height != this.Height)
-            {
-                ResizeBitmap();
-            }
-
-            CrookedLineMouseMove(e);
+            DrawMouseMove(e);
         }
 
-      
+        // Обработчик события отпускания мыши с канваса
         private void Canvas_MouseUp(object sender, MouseEventArgs e)
         {
-            endMouseLocation = e.Location;
-            ResizeMouseUp(e);
-            CrookedLineMouseUp();
-            if(!beginMouseLocation.Equals(endMouseLocation))
+            if (isFillMode)
             {
                 bitmapHistory.SaveState();
+                return;
             } 
+            if (!isResize)
+            {
+                DrawMouseUp(e);
+            }
+            if (!beginMouseLocation.Equals(e.Location))
+            {
+                ResizeBitmap();
+                bitmapHistory.SaveState();
+            }
+            ResizeMouseUp(e);
         }
 
         public Size Size
@@ -86,6 +91,8 @@ namespace Paint
             }
         }
 
+        // Изменение размера bitmap
+        // Прошлый bitmap сохраняется в историю
         private void ResizeBitmap()
         {
             Bitmap oldBitmap = (Bitmap)bitmap.Clone();
@@ -95,6 +102,8 @@ namespace Paint
             Image = bitmap;
         }
 
+
+        // Замена битмапа
         private void changeBitmap(Bitmap newBitmap)
         {
             bitmap = newBitmap;
@@ -128,82 +137,116 @@ namespace Paint
     }
 
 
-    // drow 
+    // draw 
     partial class Canvas
     {
-        private bool isDrawCrookedLine = false;
 
-        private bool isRectangle = false;
+        private static readonly Pen DEFAULT_PEN = new Pen(Color.Black, 3);
 
-        List<Point> crookedLine;
+        private static readonly IDrawable DEFAULT_DRAWABLE = new Polyline();
 
-        private Figure figure;
+        private bool isDraw = false;
 
-        private void CrookedLineMouseDown(MouseEventArgs e)
+        private IDrawable drawObj = DEFAULT_DRAWABLE; // Объект рисования
+
+        private Pen pen = DEFAULT_PEN;
+
+        // Установка объекта рисования 
+        public void setDrawableObject(IDrawable drawable)
         {
-            if(!isResize)
-            {
-                //isDrawCrookedLine = true;
-                isRectangle = true;
-                crookedLine = new List<Point>();
-                m = (Bitmap) bitmap.Clone();
-                figure = new FSircle(bitmap, e.Location);
-            } 
+            drawObj = drawable;
         }
 
-        private void CrookedLineMouseUp()
+        public void setPenColor(Color color)
         {
-            isDrawCrookedLine = false;
-            isRectangle = false;
+            pen.Color = color;
+        }
+
+        public void setPenWidth(int width)
+        {
+            pen.Width = width;
+        }
+        private void DrawMouseDown(MouseEventArgs e)
+        {
+            if (drawObj != null)
+            {  
+                drawObj = drawObj.getInstance();
+                isDraw = true;
+            }
             
         }
-        private Bitmap m;
-        private void CrookedLineMouseMove(MouseEventArgs e)
-        {
-            if(isDrawCrookedLine)
-            {
 
-                crookedLine.Add(e.Location);
-                if (crookedLine.Count > 1)
+        private void DrawMouseMove(MouseEventArgs e)
+        {
+            if(isDraw)
+            {
+                drawBitmap = (Bitmap)bitmap.Clone();
+
+                drawObj.Draw(Graphics.FromImage(drawBitmap), pen, beginMouseLocation, e.Location);
+
+                Image = drawBitmap;
+            }
+        }
+
+        private void DrawMouseUp(MouseEventArgs e)
+        {
+            if (drawBitmap != null)
+            {
+                bitmap = drawBitmap;
+            }
+
+            isDraw = false;
+        }
+
+        private bool isFillMode;
+        
+        public void setFillMode(bool isFillMode)
+        {
+            this.isFillMode = isFillMode;
+        }
+
+        private void Fill(Point selectPixel, Color color)
+        {
+            Color defaultColor = bitmap.GetPixel(selectPixel.X, selectPixel.Y);
+            if(defaultColor.ToArgb() == color.ToArgb())
+            {
+                return;
+            }
+
+            Stack<Point> stack = new Stack<Point>();
+            stack.Push(selectPixel);
+
+            while(stack.Count > 0)
+            {
+                Point current = stack.Pop();
+                
+                if(current.X < 0  || current.Y < 0 || current.X >= bitmap.Width || current.Y >= bitmap.Height)
                 {
-                    graphics.DrawLines(new Pen(Color.Red, 4), crookedLine.ToArray());
-                    Image = bitmap;
+                    continue;
+                }
+                if(bitmap.GetPixel(current.X, current.Y) == defaultColor)
+                {
+                    bitmap.SetPixel(current.X, current.Y, color);
+                    stack.Push(new Point(current.X + 1, current.Y));
+                    stack.Push(new Point(current.X - 1, current.Y));
+                    stack.Push(new Point(current.X, current.Y + 1));
+                    stack.Push(new Point(current.X, current.Y - 1));
                 }
             }
 
-            if(isRectangle)
-            {
-                Image = figure.GetFirstState();
-                bitmap = figure.Draw(bitmap, new Pen(Color.Red, 4), e.Location);
-                Image = bitmap;
-
-                //bitmap = (Bitmap) firstBitmap.Clone();
-                //Image = bitmap;
-                //Graphics.FromImage(bitmap).DrawRectangle(new Pen(Color.Red, 4), 
-                //    firstPosition.X, firstPosition.Y, 
-                //    e.X - firstPosition.X, e.Y - firstPosition.Y);
-                //Image = bitmap;
-            }
+            changeBitmap(bitmap);
         }
-
-        private void SetImage(Image image)
-        {
-            //this.bitmap = (Bitmap)image;
-            this.Image = image;
-        }
-
-       
-
     }
+
 
     // resize property
     partial class Canvas
     {
-        private readonly int MIN_HEIGHT = 50;
+        private static readonly int MIN_HEIGHT = 50;
 
-        private readonly int MIN_WIDTH = 50;
+        private static readonly int MIN_WIDTH = 50;
 
-        private readonly int SIZE_GRIP = 10;
+        private static readonly int SIZE_GRIP = 10;
 
         private Point currentMousePos;
 
@@ -212,6 +255,11 @@ namespace Paint
         private bool isResizeX = false;
 
         private bool isResizeY = false;
+
+        private bool IsInResize()
+        {
+            return isResize;
+        }
         private bool IsResizeByX(int x)
         {
             return x >= this.Width - SIZE_GRIP;

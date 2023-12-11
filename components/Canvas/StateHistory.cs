@@ -2,22 +2,33 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using static System.Windows.Forms.AxHost;
 
 namespace Paint.components.Canvas
 {
+
+    // TODO сделать лимит сохранения
+
     internal class StateHistory<T>
     {
-        T currentState; 
+        private static readonly int DEFAULT_SAVE_COUNT = 20;
 
-        Stack<T> redo;
+        private int saveCount;
 
-        Stack<T> undo;
+        private T? currentState; 
 
-        public StateHistory() 
+        private Stack<T> redo;
+
+        private Stack<T> undo;
+
+        public StateHistory(): this(DEFAULT_SAVE_COUNT) { }
+
+        public StateHistory(int saveCount) 
         {
+            this.saveCount = saveCount;
             redo = new Stack<T>();
             undo = new Stack<T>();
         }
@@ -25,10 +36,15 @@ namespace Paint.components.Canvas
         public void SetCurrentState(T state)
         {
             if (state == null)
-            {
+            {   
                 throw new ArgumentNullException(nameof(state), "State cannot be null.");
             }
             currentState = (T)((ICloneable) state).Clone();
+        }
+
+        public T? GetCurrentState()
+        {
+            return currentState;
         }
 
         public void SaveState()

@@ -30,6 +30,7 @@ namespace Paint
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             menuStrip1 = new MenuStrip();
             toolStripMenuItem1 = new ToolStripMenuItem();
             toolStripMenuItem2 = new ToolStripMenuItem();
@@ -41,11 +42,11 @@ namespace Paint
             panel1 = new Panel();
             canvas = new Canvas();
             groupBoxSize = new SizeGroupBox();
+            testLabel = new Label();
+            figureGroupBox = new FigureGroupBox();
             menuStrip1.SuspendLayout();
             panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)canvas).BeginInit();
-            //((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
-            groupBoxSize.SuspendLayout();
             SuspendLayout();
             // 
             // menuStrip1
@@ -86,7 +87,7 @@ namespace Paint
             // groupBoxColors
             // 
             groupBoxColors.Font = new Font("Cascadia Mono", 10.2F, FontStyle.Regular, GraphicsUnit.Point);
-            groupBoxColors.Location = new Point(806, 31);
+            groupBoxColors.Location = new Point(827, 31);
             groupBoxColors.Name = "groupBoxColors";
             groupBoxColors.Size = new Size(229, 125);
             groupBoxColors.TabIndex = 7;
@@ -96,18 +97,17 @@ namespace Paint
             // groupBoxTools
             // 
             groupBoxTools.Font = new Font("Cascadia Mono", 10.2F, FontStyle.Regular, GraphicsUnit.Point);
-            groupBoxTools.Location = new Point(297, 31);
+            groupBoxTools.Location = new Point(592, 31);
             groupBoxTools.Name = "groupBoxTools";
             groupBoxTools.Size = new Size(229, 125);
             groupBoxTools.TabIndex = 7;
             groupBoxTools.TabStop = false;
             groupBoxTools.Text = "Tools";
-            groupBoxTools.Click += SelectTool;
             // 
             // groupBox2
             // 
             groupBox2.Font = new Font("Cascadia Mono", 10.2F, FontStyle.Regular, GraphicsUnit.Point);
-            groupBox2.Location = new Point(549, 31);
+            groupBox2.Location = new Point(102, 31);
             groupBox2.Name = "groupBox2";
             groupBox2.Size = new Size(199, 125);
             groupBox2.TabIndex = 6;
@@ -125,28 +125,49 @@ namespace Paint
             // canvas
             // 
             canvas.BackColor = Color.White;
+            canvas.Image = (Image)resources.GetObject("canvas.Image");
             canvas.Location = new Point(3, 3);
             canvas.Name = "canvas";
-            canvas.Size = new Size(434, 197);
+            canvas.Size = new Size(858, 412);
             canvas.TabIndex = 0;
             canvas.TabStop = false;
-           
             // 
             // groupBoxSize
             // 
             groupBoxSize.Font = new Font("Cascadia Mono", 10.2F, FontStyle.Regular, GraphicsUnit.Point);
-            groupBoxSize.Location = new Point(217, 31);
+            groupBoxSize.Location = new Point(307, 31);
             groupBoxSize.Name = "groupBoxSize";
             groupBoxSize.Size = new Size(74, 125);
             groupBoxSize.TabIndex = 11;
             groupBoxSize.TabStop = false;
             groupBoxSize.Text = "Size";
             // 
+            // testLabel
+            // 
+            testLabel.AutoSize = true;
+            testLabel.Location = new Point(41, 271);
+            testLabel.Name = "testLabel";
+            testLabel.Size = new Size(33, 20);
+            testLabel.TabIndex = 12;
+            testLabel.Text = "test";
+            // 
+            // figureGroupBox
+            // 
+            figureGroupBox.Font = new Font("Cascadia Mono", 10.2F, FontStyle.Regular, GraphicsUnit.Point);
+            figureGroupBox.Location = new Point(387, 31);
+            figureGroupBox.Name = "figureGroupBox";
+            figureGroupBox.Size = new Size(199, 125);
+            figureGroupBox.TabIndex = 0;
+            figureGroupBox.TabStop = false;
+            figureGroupBox.Text = "Figures";
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1056, 608);
+            Controls.Add(figureGroupBox);
+            Controls.Add(testLabel);
             Controls.Add(groupBoxSize);
             Controls.Add(panel1);
             Controls.Add(groupBox2);
@@ -160,8 +181,6 @@ namespace Paint
             menuStrip1.PerformLayout();
             panel1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)canvas).EndInit();
-            //((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
-            groupBoxSize.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
         }
@@ -188,5 +207,7 @@ namespace Paint
         private Canvas canvas;
         private ToolStripMenuItem addImageToolStripMenuItem;
         private SizeGroupBox groupBoxSize;
+        private Label testLabel;
+        private FigureGroupBox figureGroupBox;
     }
 }

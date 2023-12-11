@@ -8,13 +8,10 @@ namespace Paint.components
 {
     internal class ColorButton: Button
     {
-        public ColorButton(Color color) 
-        {
-            SetColor(color);
-            IntializeProperties();
-        }
 
-        private void IntializeProperties()
+        public Color Color { get => BackColor; set => BackColor = value; }
+
+        public ColorButton() 
         {
             ForeColor = Color.Black;
             FlatAppearance.BorderSize = 1;
@@ -23,17 +20,6 @@ namespace Paint.components
             Location = new Point(3, 3);
             Size = new Size(24, 24);
             UseVisualStyleBackColor = false;
-        }
-
-        public Color GetColor()
-        {
-            return BackColor;
-        }
-
-        public void SetColor(Color color)
-        {
-            BackColor = color;
-            Name = $"{BackColor}";
         }
     }
 }

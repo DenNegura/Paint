@@ -13,7 +13,6 @@ namespace Paint.components.Figurs
         public FRectangle(Bitmap bitmap, Point mousePosition) : 
             base(bitmap, mousePosition) {}
 
-       
         override public Bitmap Draw(Bitmap bitmap, Pen pen, Point mousePosition)
         {
             return Draw(bitmap, pen, mousePosition, GetGraphics().DrawRectangle);

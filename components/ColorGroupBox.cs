@@ -2,7 +2,7 @@
 
 namespace Paint.components
 {
-    internal class ColorGroupBox: GroupBox
+    internal class ColorGroupBox: CustomGroupBox
     {
         private static Color[] DEFAULT_COLORS = new Color[] {
             Color.Red, Color.Blue, Color.Black,
@@ -12,51 +12,34 @@ namespace Paint.components
             Color.Plum, Color.Beige, Color.Bisque,
         };
 
+        private static readonly string TITLE = "Colors";
+
+        private static readonly Color DEFAULT_SELECT_COLOR = Color.Black;
+
+        private static readonly Color DEFAULT_PREVIOUS_COLOR = Color.White;
+
         private ColorDialog colorDialog;
 
-        private ColorButton buttonColorSelect;
+        private ColorButton selectButton;
 
-        private ColorButton buttonColorPrevious;
+        private ColorButton previousButton;
        
-        private FlowLayoutPanel colorsBox;
+        private FlowLayoutPanel layout;
 
         private Button buttonNewColor;
 
-        public ColorGroupBox() 
+        public event EventHandler OnSelect;
+
+        public ColorGroupBox() : base(TITLE)
         {
-            InitializeComponents();
-            IntializeColorsBox();
-        }
-        private void InitializeComponents()
-        {
-            colorDialog = new ColorDialog();
-            buttonColorSelect = new ColorButton(Color.Black);
-            buttonColorPrevious = new ColorButton(Color.White);
-            colorsBox = new FlowLayoutPanel();
-            buttonNewColor = new Button();
+            selectButton = (ColorButton) initSelectButton(new ColorButton());
+            previousButton = (ColorButton) initPreviousButton(new ColorButton());
+            layout = initLayout(new FlowLayoutPanel());
 
-            colorsBox.SuspendLayout();
-            SuspendLayout();
+            selectButton.Color = DEFAULT_SELECT_COLOR;
+            previousButton.Color = DEFAULT_PREVIOUS_COLOR;
 
-            // 
-            // buttonColorPrevious
-            // 
-            buttonColorPrevious.Location = new Point(6, 76);
-            buttonColorPrevious.Name = "buttonColorPrevious";
-            buttonColorPrevious.Size = new Size(30, 30);
-            buttonColorPrevious.TabIndex = 5;
-            buttonColorPrevious.Click += ButtonColor_Click;
-
-            // 
-            // buttonColorSelect
-            // 
-            buttonColorSelect.Location = new Point(6, 30);
-            buttonColorSelect.Name = "buttonColorSelect";
-            buttonColorSelect.Size = new Size(30, 30);
-
-            // 
-            // buttonNewColor
-            // 
+            buttonNewColor = new ColorButton();
             buttonNewColor.BackgroundImage = Resources.Add;
             buttonNewColor.FlatAppearance.BorderSize = 0;
             buttonNewColor.FlatStyle = FlatStyle.Flat;
@@ -66,38 +49,24 @@ namespace Paint.components
             buttonNewColor.TabIndex = 0;
             buttonNewColor.UseVisualStyleBackColor = true;
             buttonNewColor.Click += buttonNewColor_Click;
+            buttonNewColor.Click += OnSelect_Click;
 
-            // 
-            // colorsBox
-            // 
-            colorsBox.AutoScroll = true;
-            colorsBox.Controls.Add(buttonNewColor);
-            colorsBox.Location = new Point(48, 27);
-            colorsBox.Name = "colorsBox";
-            colorsBox.Size = new Size(175, 92);
-            colorsBox.TabIndex = 2;
+            selectButton.Click += OnSelect_Click;
 
-            // 
-            // groupBoxColors
-            // 
-            Controls.Add(buttonColorPrevious);
-            Controls.Add(colorsBox);
-            Controls.Add(buttonColorSelect);
-            Font = new Font("Cascadia Mono", 10.2F, FontStyle.Regular, GraphicsUnit.Point);
-            TabStop = false;
-            Text = "Colors";
-
-            colorsBox.ResumeLayout(false);
-            ResumeLayout(false);
+            previousButton.Click += ChangeColor_Click;
+            previousButton.Click += OnSelect_Click;
+            InitDefalutValues();
         }
 
-        private void IntializeColorsBox()
+        private void InitDefalutValues()
         {
             foreach (Color color in DEFAULT_COLORS)
             {
-                ColorButton colorButton = new ColorButton(color);
-                colorButton.Click += ButtonColor_Click;
-                colorsBox.Controls.Add(colorButton);
+                ColorButton colorButton = new ColorButton();
+                colorButton.Color = color;
+                colorButton.Click += ChangeColor_Click;
+                colorButton.Click += OnSelect_Click;
+                layout.Controls.Add(colorButton);
             }
         }
 
@@ -105,18 +74,19 @@ namespace Paint.components
         {
             if (colorDialog.ShowDialog() == DialogResult.OK)
             {
-                ColorButton newColorButton = new ColorButton(colorDialog.Color);
-                newColorButton.Click += ButtonColor_Click;
+                ColorButton newColorButton = new ColorButton();
+                newColorButton.Color = colorDialog.Color;
+                newColorButton.Click += ChangeColor_Click;
 
                 ColorButton? buttonToRemove = null;
 
-                foreach (Button button in colorsBox.Controls)
+                foreach (Button button in layout.Controls)
                 {
                     if (button is ColorButton)
                     {
                         ColorButton colorButton = (ColorButton)button;
 
-                        if (colorButton.GetColor() == newColorButton.GetColor())
+                        if (colorButton.Color == newColorButton.Color)
                         {
                             buttonToRemove = colorButton;
                             break;
@@ -125,18 +95,41 @@ namespace Paint.components
                 }
                 if (buttonToRemove != null)
                 {
-                    colorsBox.Controls.Remove(buttonToRemove);
+                    layout.Controls.Remove(buttonToRemove);
                 }
-                colorsBox.Controls.Add(newColorButton);
-                colorsBox.Controls.SetChildIndex(newColorButton, 1);
+                layout.Controls.Add(newColorButton);
+                layout.Controls.SetChildIndex(newColorButton, 1);
             }
         }
 
-        private void ButtonColor_Click(object sender, EventArgs e)
+        private void ChangeColor_Click(object sender, EventArgs e)
         {
-            Color selectColor = ((ColorButton)sender).GetColor();
-            buttonColorPrevious.SetColor(buttonColorSelect.BackColor);
-            buttonColorSelect.SetColor(selectColor);
+            ChangeColor(((ColorButton)sender).Color);
+            
+        }
+
+        private void ChangeColor(Color color)
+        {
+            if (selectButton.Color != color)
+            {
+                previousButton.Color = selectButton.Color;
+                selectButton.Color = color;
+            }
+        }
+
+        public Color getCurrentColor()
+        {
+            return selectButton.Color;
+        }
+
+        public void setCurrentColor(Color color)
+        {
+            ChangeColor(color);
+        }
+
+        private void OnSelect_Click(object sender, EventArgs e) 
+        {
+            OnSelect.Invoke(selectButton.Color, e);
         }
     }
 }

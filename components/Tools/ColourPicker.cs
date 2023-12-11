@@ -4,12 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Paint.components
+namespace Paint.components.Tools
 {
-    internal enum Tool
+    internal class ColourPicker: ITool
     {
-        LINE,
-
-
+        
     }
 }

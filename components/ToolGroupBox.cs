@@ -1,102 +1,96 @@
-﻿using Paint.Properties;
+﻿using Paint.components.Drawable;
+using Paint.components.Figurs;
+using Paint.components.Tools;
+using Paint.Properties;
 
 namespace Paint.components
 {
-    internal class ToolGroupBox: GroupBox
+    internal class ToolGroupBox: CustomGroupBox
     {
-        private static Image[] DEFOULT_TOOLS = new Image[] {
-            Resources.Pen, Resources.Eraser, Resources.Fill, 
-            Resources.Line, Resources.Rectangle, Resources.Circle,
-    };
-
-        private ImageButton buttonToolSelect;
-
-        private ImageButton buttonToolPrevious;
-
-        private FlowLayoutPanel toolsBox;
-
-        public delegate void ClickHeandler(object sender, EventArgs e);
-
-        public event ClickHeandler Click;
-
-        public ToolGroupBox()
+        private class Tool
         {
-            InitializeComponents();
-            IntializeToolsBox();
-        }
+            public EnumTool tool;
 
-        private void InitializeComponents()
-        {
-            buttonToolSelect = new ImageButton(DEFOULT_TOOLS[0]);
-            buttonToolPrevious = new ImageButton(DEFOULT_TOOLS[1]);
-            toolsBox = new FlowLayoutPanel();
+            public Image image;
 
-            toolsBox.SuspendLayout();
-            SuspendLayout();
-
-            // 
-            // buttonToolSelect
-            // 
-            buttonToolSelect.Location = new Point(6, 30);
-            buttonToolSelect.Name = "buttonToolSelect";
-            buttonToolSelect.FlatStyle = FlatStyle.Standard;
-            buttonToolSelect.Size = new Size(32, 32);
-            buttonToolSelect.Click += Send_Event;
-
-            // 
-            // buttonToolPrevious
-            // 
-            buttonToolPrevious.Location = new Point(6, 76);
-            buttonToolPrevious.Name = "buttonToolPrevious";
-            buttonToolPrevious.Size = new Size(32, 32);
-            buttonToolPrevious.FlatStyle = FlatStyle.Standard;
-            buttonToolPrevious.Click += SelectTool_Click;
-            buttonToolPrevious.Click += Send_Event;
-
-            // 
-            // toolsBox
-            // 
-            toolsBox.AutoScroll = true;
-            toolsBox.Location = new Point(48, 27);
-            toolsBox.Name = "toolsBox";
-            toolsBox.Size = new Size(175, 92);
-            toolsBox.TabIndex = 2;
-
-            // 
-            // groupBoxTools
-            // 
-            Controls.Add(buttonToolSelect);
-            Controls.Add(buttonToolPrevious);
-            Controls.Add(toolsBox);
-            Font = new Font("Cascadia Mono", 10.2F, FontStyle.Regular, GraphicsUnit.Point);
-            TabStop = false;
-            Text = "Colors";
-
-            toolsBox.ResumeLayout(false);
-            ResumeLayout(false);
-        }
-
-        private void IntializeToolsBox()
-        {
-            foreach(Image tool in DEFOULT_TOOLS)
+            public Tool(Image image, EnumTool tool)
             {
-                ImageButton imageButton = new ImageButton(tool);
-                imageButton.Click += SelectTool_Click;
-                imageButton.Click += Send_Event;
-                toolsBox.Controls.Add(imageButton);
+                this.tool = tool;
+                this.image = image;
             }
         }
 
-        private void SelectTool_Click(object sender, EventArgs e)
+        private static Tool[] DEFAULT_TOOLS = new Tool[]
         {
-            Image selectTool = ((ImageButton)sender).Image;
-            buttonToolPrevious.Image = buttonToolSelect.Image;
-            buttonToolSelect.Image = selectTool;
+            new Tool(Resources.Pen, EnumTool.PEN),
+            new Tool(Resources.Eraser, EnumTool.ERASER),
+            new Tool(Resources.Fill, EnumTool.FILL)
+        };
+
+        private static readonly string TITLE = "Tools";
+
+        private static readonly Tool DEFAULT_SELECT_TOOL = new Tool(Resources.Pen, EnumTool.PEN);
+
+        private static readonly Tool DEFAULT_PREVIOUS_TOOL = new Tool(Resources.Eraser, EnumTool.ERASER);
+
+        private ImageButton selectButton;
+
+        private ImageButton previousButton;
+
+        private FlowLayoutPanel layuot;
+
+        public event EventHandler OnSelect;
+
+        public ToolGroupBox(): base(TITLE)
+        {
+            selectButton = (ImageButton) initSelectButton(new ImageButton());
+            previousButton = (ImageButton) initPreviousButton(new ImageButton());
+            layuot = initLayout(new FlowLayoutPanel());
+
+            selectButton.Image = DEFAULT_SELECT_TOOL.image;
+            selectButton.Tag = DEFAULT_SELECT_TOOL;
+            selectButton.Click += OnSelect_Click;
+
+            previousButton.Image = DEFAULT_PREVIOUS_TOOL.image;
+            previousButton.Tag = DEFAULT_PREVIOUS_TOOL;
+            previousButton.Click += ChangeTool_Click;
+            previousButton.Click += OnSelect_Click;
+
+            InitDefalutValues();
         }
 
-        private void Send_Event(object sender, EventArgs e)
+        private void InitDefalutValues()
         {
-            Click.Invoke(this, e);
+            foreach(Tool tool in DEFAULT_TOOLS)
+            {
+                ImageButton imageButton = new ImageButton();
+                imageButton.Image = tool.image;
+                imageButton.Tag = tool;
+                imageButton.Click += ChangeTool_Click;
+                imageButton.Click += OnSelect_Click;
+                layuot.Controls.Add(imageButton);
+            }
+        }
+
+        private void ChangeTool_Click(object sender, EventArgs e)
+        {
+            Tool? tool = ((ImageButton)sender).Tag as Tool;
+            if ( tool != null && (selectButton.Tag as Tool).tool != tool.tool)
+            {
+                previousButton.Image = selectButton.Image;
+                previousButton.Tag = selectButton.Tag;
+                selectButton.Image = tool.image;
+                selectButton.Tag = tool;
+            }
+        }
+
+        private void OnSelect_Click(object sender, EventArgs e)
+        {
+            Tool? tool = ((ImageButton)sender).Tag as Tool;
+            if (tool != null)
+            {
+                OnSelect.Invoke(tool.tool, e);
+            }
         }
     }
 }
