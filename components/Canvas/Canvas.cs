@@ -1,4 +1,5 @@
-﻿using Paint.components.Canvas;
+﻿using Microsoft.VisualBasic.Devices;
+using Paint.components.Canvas;
 using Paint.components.Drawable;
 using Paint.components.Figurs;
 using Paint.components.Tools;
@@ -19,11 +20,47 @@ namespace Paint
 
         private StateHistory<Bitmap> bitmapHistory; // запоминает сосотояние bitmap'ов, функции redo undo
 
-        public Canvas() 
+        private bool isResize = false; // флаг изменения размера
+
+        private bool isFill = false; // флаг заполнения
+
+        private bool isDraw = false; // флаг рисования
+
+        public event EventHandler OnMoveMouse;
+
+        public event EventHandler OnSelectPixel;
+
+        private static readonly Color DEFAULT_BACKGROUND_COLOR = Color.White;
+
+        private Color backgroundColor = DEFAULT_BACKGROUND_COLOR;
+
+
+        private void OnSelectPixelHandler(MouseEventArgs e)
+        {
+            OnSelectPixel?.Invoke(bitmap.GetPixel(e.X, e.Y), EventArgs.Empty);
+        }
+        
+        private void SetBackgroundColor(Color backgroundColor)
+        {
+            this.backgroundColor = backgroundColor;
+            BackColor = backgroundColor;
+            graphics?.Clear(backgroundColor);
+        }
+
+        public Color GetBackroundColor()
+        {
+            return backgroundColor;
+        }
+        
+
+        public Canvas()
         {
             bitmapHistory = new StateHistory<Bitmap>(20);  
             bitmap = new Bitmap(this.Width, this.Height);
+            
             graphics = Graphics.FromImage(bitmap);
+            SetBackgroundColor(backgroundColor);
+          
             this.Image = bitmap;
 
             this.MouseDown += new MouseEventHandler(this.Canvas_MouseDown);
@@ -34,49 +71,76 @@ namespace Paint
         // Оброботчик события нажатия мыши на канвас
         private void Canvas_MouseDown(object sender, MouseEventArgs e)
         {
+            OnSelectPixelHandler(e);
+
             beginMouseLocation = e.Location;
             bitmapHistory.SetCurrentState(bitmap);
 
-            if (isFillMode)
+            IsResizeMode_MouseDown(e);
+            
+            if(!isResize && !isFill)
             {
-                Fill(e.Location, pen.Color);
+                IsDrawMode_MouseDown(e);
             }
-            else
-            {
-                ResizeMouseDown(e);
 
-                if (!isResize)
-                {
-                    DrawMouseDown(e);
-                }
+            if (isResize)
+            {
+                Resize_MouseDown(e);
+            }
+
+            if (!isResize && isFill)
+            {
+                Fill_MouseDown(e);
+            }
+            if (!isResize && !isFill && isDraw)
+            {
+                Draw_MouseDown(e);
             }
         }
 
         // Обработчик события перетаскивания мыши
         private void Canvas_MouseMove(object sender, MouseEventArgs e)
         {
-            ResizeMouseMove(e);
-            DrawMouseMove(e);
+            ChangeMouseState_MouseMove(e);
+            
+            if (isResize)
+            {
+                Resize_MouseMove(e);
+            }
+            if(!isResize && !isFill && isDraw)
+            {
+                Draw_MouseMove(e);
+            }
         }
 
         // Обработчик события отпускания мыши с канваса
         private void Canvas_MouseUp(object sender, MouseEventArgs e)
         {
-            if (isFillMode)
+            if (isResize)
+            {
+                Resize_MouseUp(e);
+            }
+            
+            if (!isResize && isFill)
             {
                 bitmapHistory.SaveState();
-                return;
             } 
-            if (!isResize)
+            if (!isResize && !isFill && isDraw && isMouseMoved(e.Location))
             {
-                DrawMouseUp(e);
+                Draw_MouseUp(e);
             }
-            if (!beginMouseLocation.Equals(e.Location))
+
+            if (isMouseMoved(e.Location))
             {
                 ResizeBitmap();
                 bitmapHistory.SaveState();
             }
-            ResizeMouseUp(e);
+            
+        }
+
+        private bool isMouseMoved(Point mousePos)
+        {
+            return !beginMouseLocation.Equals(mousePos);
         }
 
         public Size Size
@@ -98,6 +162,7 @@ namespace Paint
             Bitmap oldBitmap = (Bitmap)bitmap.Clone();
             bitmap = new Bitmap(Width, Height);
             graphics = Graphics.FromImage(bitmap);
+            SetBackgroundColor(backgroundColor);
             graphics.DrawImage(oldBitmap, 0, 0);
             Image = bitmap;
         }
@@ -145,16 +210,19 @@ namespace Paint
 
         private static readonly IDrawable DEFAULT_DRAWABLE = new Polyline();
 
-        private bool isDraw = false;
 
         private IDrawable drawObj = DEFAULT_DRAWABLE; // Объект рисования
 
         private Pen pen = DEFAULT_PEN;
 
         // Установка объекта рисования 
-        public void setDrawableObject(IDrawable drawable)
+        public void setDrawableObject(IDrawable? drawable)
         {
             drawObj = drawable;
+            if(drawable != null)
+            {
+                setFillMode(false);
+            }
         }
 
         public void setPenColor(Color color)
@@ -166,17 +234,22 @@ namespace Paint
         {
             pen.Width = width;
         }
-        private void DrawMouseDown(MouseEventArgs e)
+
+        private bool IsDrawMode_MouseDown(MouseEventArgs e)
         {
-            if (drawObj != null)
-            {  
-                drawObj = drawObj.getInstance();
+            isDraw = false;
+            if(drawObj != null)
+            {
                 isDraw = true;
             }
-            
+            return isDraw;
+        }
+        private void Draw_MouseDown(MouseEventArgs e)
+        {
+            drawObj = drawObj.GetInstance();
         }
 
-        private void DrawMouseMove(MouseEventArgs e)
+        private void Draw_MouseMove(MouseEventArgs e)
         {
             if(isDraw)
             {
@@ -188,7 +261,7 @@ namespace Paint
             }
         }
 
-        private void DrawMouseUp(MouseEventArgs e)
+        private void Draw_MouseUp(MouseEventArgs e)
         {
             if (drawBitmap != null)
             {
@@ -198,11 +271,18 @@ namespace Paint
             isDraw = false;
         }
 
-        private bool isFillMode;
-        
         public void setFillMode(bool isFillMode)
         {
-            this.isFillMode = isFillMode;
+            this.isFill = isFillMode;
+            if (isFillMode)
+            {
+                setDrawableObject(null);
+            }
+        }
+
+        private void Fill_MouseDown(MouseEventArgs e)
+        {
+            Fill(e.Location, pen.Color);
         }
 
         private void Fill(Point selectPixel, Color color)
@@ -248,18 +328,34 @@ namespace Paint
 
         private static readonly int SIZE_GRIP = 10;
 
+        private int maxHeight;
+
+        private int maxWidth;
+
         private Point currentMousePos;
 
-        private bool isResize = false;
 
         private bool isResizeX = false;
 
         private bool isResizeY = false;
 
-        private bool IsInResize()
+
+        public void setMaxHeight(int height)
         {
-            return isResize;
+            this.maxHeight = height;
         }
+
+        public void setMaxWight(int wigth)
+        {
+            this.maxWidth = wigth;
+        }
+
+        public void setMaxSize(Point size)
+        {
+            setMaxWight(size.X);
+            setMaxHeight(size.Y);
+        }
+
         private bool IsResizeByX(int x)
         {
             return x >= this.Width - SIZE_GRIP;
@@ -270,10 +366,9 @@ namespace Paint
             return y >= this.Height - SIZE_GRIP;
         }
 
-        private void ResizeMouseDown(MouseEventArgs e)
+        private bool IsResizeMode_MouseDown(MouseEventArgs e)
         {
-            currentMousePos = e.Location;
-            this.Capture = true;
+            isResize = isResizeX = isResizeY = false;
 
             if (IsResizeByX(e.X) && IsResizeByY(e.Y))
             {
@@ -297,30 +392,61 @@ namespace Paint
                 isResizeY = false;
                 isResizeX = false;
             }
+            return isResize;
         }
+
         private int GetResizeWidth(int x)
         {
             int width = this.Width + x - currentMousePos.X;
-            if (width > MIN_WIDTH)
+            if (width < MIN_WIDTH)
+            {
+                width = MIN_WIDTH;
+            }
+            else
             {
                 currentMousePos.X = x;
-                return width;
             }
-            return this.Width;
+            if(width > maxWidth)
+            {
+                width = maxWidth;
+            }
+            else
+            {
+                currentMousePos.X = x;
+            }
+            return width;
         }
 
         private int GetResizeHeight(int y)
         {
             int height = this.Height + y - currentMousePos.Y;
-            if (height > MIN_HEIGHT)
+            if (height < MIN_HEIGHT)
+            {
+                height = MIN_HEIGHT;
+            }
+            else
             {
                 currentMousePos.Y = y;
-                return height;
             }
-            return this.Height;
+            if (height > maxHeight)
+            {
+                height = maxHeight;
+            }
+            else
+            {
+                currentMousePos.Y = y;
+            }
+            return height;
         }
 
-        private void ResizeMouseMove(MouseEventArgs e)
+        private void Resize_MouseDown(MouseEventArgs e)
+        {
+            currentMousePos = e.Location;
+
+            this.Capture = true;
+        }
+
+        private void ChangeMouseState_MouseMove(MouseEventArgs e)
         {
             if (IsResizeByX(e.X) && IsResizeByY(e.Y))
             {
@@ -338,26 +464,26 @@ namespace Paint
             {
                 this.Cursor = Cursors.Default;
             }
+        }
+        private void Resize_MouseMove(MouseEventArgs e)
+        {
 
-            if (isResize)
+            if (isResizeX && isResizeY)
             {
-                if (isResizeX && isResizeY)
-                {
-                    this.Width = GetResizeWidth(e.X);
-                    this.Height = GetResizeHeight(e.Y);
-                }
-                else if (isResizeX)
-                {
-                    this.Width = GetResizeWidth(e.X);
-                }
-                else if (isResizeY)
-                {
-                    this.Height = GetResizeHeight(e.Y);
-                }
+                this.Width = GetResizeWidth(e.X);
+                this.Height = GetResizeHeight(e.Y);
+            }
+            else if (isResizeX)
+            {
+                this.Width = GetResizeWidth(e.X);
+            }
+            else if (isResizeY)
+            {
+                this.Height = GetResizeHeight(e.Y);
             }
         }
 
-        private void ResizeMouseUp(MouseEventArgs e)
+        private void Resize_MouseUp(MouseEventArgs e)
         {
             isResize = isResizeX = isResizeY = false;
             this.Capture = false;

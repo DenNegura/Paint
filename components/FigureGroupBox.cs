@@ -1,11 +1,5 @@
 ﻿using Paint.components.Drawable;
 using Paint.Properties;
-using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Paint.components
 {
@@ -28,7 +22,9 @@ namespace Paint.components
         {
             new Figure(Resources.Line, new Line()),
             new Figure(Resources.Rectangle, new Drawable.Rectangle()),
-            new Figure(Resources.Circle, new Drawable.Rectangle())
+            new Figure(Resources.Circle, new Sircle()),
+            new Figure(Resources.ColourPicker, new Star()),
+            new Figure(Resources.Pen, new Heart()),
         };
 
         private static readonly string TITLE = "Figures";

@@ -13,7 +13,7 @@ namespace Paint.components.Drawable
             graphics.DrawLine(pen, pos1, pos2);
         }
 
-        public IDrawable getInstance()
+        public IDrawable GetInstance()
         {
             return new Line();
         }

@@ -39,13 +39,13 @@ namespace Paint
             groupBoxColors = new ColorGroupBox();
             groupBoxTools = new ToolGroupBox();
             groupBox2 = new GroupBox();
-            panel1 = new Panel();
+            canvasContainer = new Panel();
             canvas = new Canvas();
             groupBoxSize = new SizeGroupBox();
             testLabel = new Label();
             figureGroupBox = new FigureGroupBox();
             menuStrip1.SuspendLayout();
-            panel1.SuspendLayout();
+            canvasContainer.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)canvas).BeginInit();
             SuspendLayout();
             // 
@@ -114,13 +114,13 @@ namespace Paint
             groupBox2.TabStop = false;
             groupBox2.Text = "Tools";
             // 
-            // panel1
+            // canvasContainer
             // 
-            panel1.Controls.Add(canvas);
-            panel1.Location = new Point(113, 178);
-            panel1.Name = "panel1";
-            panel1.Size = new Size(864, 418);
-            panel1.TabIndex = 8;
+            canvasContainer.Controls.Add(canvas);
+            canvasContainer.Location = new Point(113, 178);
+            canvasContainer.Name = "canvasContainer";
+            canvasContainer.Size = new Size(864, 418);
+            canvasContainer.TabIndex = 8;
             // 
             // canvas
             // 
@@ -169,7 +169,7 @@ namespace Paint
             Controls.Add(figureGroupBox);
             Controls.Add(testLabel);
             Controls.Add(groupBoxSize);
-            Controls.Add(panel1);
+            Controls.Add(canvasContainer);
             Controls.Add(groupBox2);
             Controls.Add(groupBoxColors);
             Controls.Add(groupBoxTools);
@@ -179,7 +179,7 @@ namespace Paint
             Text = "Form1";
             menuStrip1.ResumeLayout(false);
             menuStrip1.PerformLayout();
-            panel1.ResumeLayout(false);
+            canvasContainer.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)canvas).EndInit();
             ResumeLayout(false);
             PerformLayout();
@@ -203,7 +203,7 @@ namespace Paint
         private ColorGroupBox groupBoxColors;
         private ToolGroupBox groupBoxTools;
         private GroupBox groupBox2;
-        private Panel panel1;
+        private Panel canvasContainer;
         private Canvas canvas;
         private ToolStripMenuItem addImageToolStripMenuItem;
         private SizeGroupBox groupBoxSize;

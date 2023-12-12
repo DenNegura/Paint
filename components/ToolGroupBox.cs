@@ -24,7 +24,8 @@ namespace Paint.components
         {
             new Tool(Resources.Pen, EnumTool.PEN),
             new Tool(Resources.Eraser, EnumTool.ERASER),
-            new Tool(Resources.Fill, EnumTool.FILL)
+            new Tool(Resources.Fill, EnumTool.FILL),
+            new Tool(Resources.ColourPicker, EnumTool.COLOUR_PICKER)
         };
 
         private static readonly string TITLE = "Tools";

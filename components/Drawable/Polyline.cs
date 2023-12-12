@@ -24,7 +24,7 @@ namespace Paint.components.Drawable
             }
         }
 
-        public IDrawable getInstance()
+        public IDrawable GetInstance()
         {
             return new Polyline();
         }

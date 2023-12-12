@@ -127,6 +127,9 @@
   <data name="Circle" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\images\tools\circle.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="ColourPicker" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\images\tools\colour-picker.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="Eraser" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\images\tools\eraser.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>

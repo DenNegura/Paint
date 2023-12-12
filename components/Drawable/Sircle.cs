@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Paint.components.Drawable
 {
-    internal class Rectangle : IDrawable
+    internal class Sircle : IDrawable
     {
         public void Draw(Graphics graphics, Pen pen, Point pos1, Point pos2)
         {
@@ -31,12 +31,12 @@ namespace Paint.components.Drawable
                 y = pos2.Y;
                 height = pos1.Y - pos2.Y;
             }
-            graphics.DrawRectangle(pen, x, y, width, height);
+            graphics.DrawEllipse(pen, x, y, width, height);
         }
 
         public IDrawable GetInstance()
         {
-            return new Rectangle();
+            return new Sircle();
         }
     }
 }

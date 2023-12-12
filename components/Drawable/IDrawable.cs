@@ -8,7 +8,7 @@ namespace Paint.components.Drawable
 {
     public interface IDrawable
     {
-        IDrawable getInstance();
+        IDrawable GetInstance();
 
         void Draw(Graphics graphics, Pen pen, Point pos1, Point pos2);
     }
