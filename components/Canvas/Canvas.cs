@@ -1,14 +1,16 @@
-﻿using Microsoft.VisualBasic.Devices;
-using Paint.components.Canvas;
+﻿using Paint.components.Canvas;
 using Paint.components.Drawable;
-using Paint.components.Figurs;
-using Paint.components.Tools;
-using System.Xml;
 
 namespace Paint
 {
     internal partial class Canvas: PictureBox
     {
+
+        // констинты
+        private static readonly Color DEFAULT_BACKGROUND_COLOR = Color.White;
+
+        // переменные
+        private Color backgroundColor = DEFAULT_BACKGROUND_COLOR;
 
         Point beginMouseLocation; // позиция мыши при нажатии
 
@@ -16,51 +18,34 @@ namespace Paint
 
         private Bitmap drawBitmap; // bitmap используемый в процессе рисования
 
-        private Graphics graphics; 
+        private Graphics graphics; // Класс Graphics для рисования
 
         private StateHistory<Bitmap> bitmapHistory; // запоминает сосотояние bitmap'ов, функции redo undo
 
+        // константы
         private bool isResize = false; // флаг изменения размера
 
         private bool isFill = false; // флаг заполнения
 
         private bool isDraw = false; // флаг рисования
 
-        public event EventHandler OnMoveMouse;
 
-        public event EventHandler OnSelectPixel;
+        // события
+        public event EventHandler OnMoveMouse; // Когда мышка перемещается
 
-        private static readonly Color DEFAULT_BACKGROUND_COLOR = Color.White;
+        public event EventHandler OnResize; // когда размер изменяется
 
-        private Color backgroundColor = DEFAULT_BACKGROUND_COLOR;
+        public event EventHandler OnSelectPixel; // когда есть нажатие на канвас
 
-
-        private void OnSelectPixelHandler(MouseEventArgs e)
-        {
-            OnSelectPixel?.Invoke(bitmap.GetPixel(e.X, e.Y), EventArgs.Empty);
-        }
-        
-        private void SetBackgroundColor(Color backgroundColor)
-        {
-            this.backgroundColor = backgroundColor;
-            BackColor = backgroundColor;
-            graphics?.Clear(backgroundColor);
-        }
-
-        public Color GetBackroundColor()
-        {
-            return backgroundColor;
-        }
-        
 
         public Canvas()
         {
-            bitmapHistory = new StateHistory<Bitmap>(20);  
+            bitmapHistory = new StateHistory<Bitmap>(20);
             bitmap = new Bitmap(this.Width, this.Height);
-            
+
             graphics = Graphics.FromImage(bitmap);
             SetBackgroundColor(backgroundColor);
-          
+
             this.Image = bitmap;
 
             this.MouseDown += new MouseEventHandler(this.Canvas_MouseDown);
@@ -68,46 +53,68 @@ namespace Paint
             this.MouseUp += new MouseEventHandler(this.Canvas_MouseUp);
         }
 
+        // передача размера
+        private void OnResize_Event()
+        {
+            OnResize?.Invoke(this.Size, EventArgs.Empty);
+        }
+
+        // передача координат мыши
+        private void OnMouseMove_Event(MouseEventArgs e)
+        {
+            int x = e.Location.X;
+            int y = e.Location.Y;
+            if (x < 0 || x > Width) x = 0;
+            if (y < 0 || y > Height) y = 0;
+            OnMoveMouse?.Invoke(new Point(x, y), EventArgs.Empty);
+        }
+
+        // передача цвета пикселя
+        private void OnSelectPixel_Event(MouseEventArgs e)
+        {
+            OnSelectPixel?.Invoke(bitmap.GetPixel(e.X, e.Y), EventArgs.Empty);
+        }
+
         // Оброботчик события нажатия мыши на канвас
         private void Canvas_MouseDown(object sender, MouseEventArgs e)
         {
-            OnSelectPixelHandler(e);
+            OnSelectPixel_Event(e);
 
             beginMouseLocation = e.Location;
             bitmapHistory.SetCurrentState(bitmap);
 
             IsResizeMode_MouseDown(e);
-            
-            if(!isResize && !isFill)
+            if(!isResize)
             {
-                IsDrawMode_MouseDown(e);
+                IsDraw_MouseDown();
             }
 
             if (isResize)
             {
                 Resize_MouseDown(e);
             }
-
-            if (!isResize && isFill)
+            else if (isFill)
             {
                 Fill_MouseDown(e);
             }
-            if (!isResize && !isFill && isDraw)
+            else if (isDraw)
             {
-                Draw_MouseDown(e);
+                Draw_MouseDown();
             }
         }
 
         // Обработчик события перетаскивания мыши
         private void Canvas_MouseMove(object sender, MouseEventArgs e)
         {
+            OnMouseMove_Event(e);
+
             ChangeMouseState_MouseMove(e);
-            
+
             if (isResize)
             {
                 Resize_MouseMove(e);
             }
-            if(!isResize && !isFill && isDraw)
+            else if(isDraw)
             {
                 Draw_MouseMove(e);
             }
@@ -120,14 +127,20 @@ namespace Paint
             {
                 Resize_MouseUp(e);
             }
-            
-            if (!isResize && isFill)
+            else if (isFill)
             {
                 bitmapHistory.SaveState();
             } 
-            if (!isResize && !isFill && isDraw && isMouseMoved(e.Location))
+            else if (isDraw)
             {
-                Draw_MouseUp(e);
+                if(isMouseMoved(e.Location))
+                {
+                    Draw_MouseUp(e);
+                }
+                else
+                {
+                    isDraw = false;
+                }
             }
 
             if (isMouseMoved(e.Location))
@@ -199,56 +212,109 @@ namespace Paint
                 changeBitmap(nextBitmap);
             }
         }
+
+        private void SetBackgroundColor(Color backgroundColor)
+        {
+            this.backgroundColor = backgroundColor;
+            BackColor = backgroundColor;
+            graphics?.Clear(backgroundColor);
+        }
+
+        public Color GetBackroundColor()
+        {
+            return backgroundColor;
+        }
+
+        public void Clear()
+        {
+            bitmapHistory.SetCurrentState(bitmap);
+            bitmapHistory.SaveState();
+            SetBackgroundColor(backgroundColor);
+            changeBitmap(bitmap);
+            ClearHistory();
+        }
+
+        public bool isEmpty()
+        {
+            return bitmapHistory.isEmpty();
+        }
+
+        public void ClearHistory()
+        {
+            bitmapHistory.Clear();
+        }
+
+        public void Save(string filePath)
+        {
+            bitmap.Save(filePath);
+        }
+
+        public void SetImage(Image image)
+        {
+            Size = image.Size;
+            graphics.DrawImage(image, new RectangleF(0, 0, image.Width, image.Height));
+        }
     }
 
 
     // draw 
     partial class Canvas
     {
+        private IDrawable drawObj; // Объект рисования
 
-        private static readonly Pen DEFAULT_PEN = new Pen(Color.Black, 3);
-
-        private static readonly IDrawable DEFAULT_DRAWABLE = new Polyline();
-
-
-        private IDrawable drawObj = DEFAULT_DRAWABLE; // Объект рисования
-
-        private Pen pen = DEFAULT_PEN;
+        private Pen pen; // перо
 
         // Установка объекта рисования 
         public void setDrawableObject(IDrawable? drawable)
         {
             drawObj = drawable;
-            if(drawable != null)
+            if(drawObj != null)
             {
                 setFillMode(false);
             }
         }
 
-        public void setPenColor(Color color)
+        // установка пера
+        public void SetPen(Pen pen)
         {
-            pen.Color = color;
+            this.pen = pen;
         }
 
-        public void setPenWidth(int width)
+        // установка размера
+        public void SetPenSize(int size)
         {
-            pen.Width = width;
+            if(pen != null)
+            {
+                pen.Width = size;
+            }
         }
 
-        private bool IsDrawMode_MouseDown(MouseEventArgs e)
+        // установка цвета
+        public void SetPenColor(Color color)
+        {
+            if (pen != null)
+            {
+                pen.Color = color;
+            }
+        }
+
+        // функция изменения флага при рисовании
+        private void IsDraw_MouseDown()
         {
             isDraw = false;
-            if(drawObj != null)
+            if (drawObj != null)
             {
                 isDraw = true;
             }
-            return isDraw;
         }
-        private void Draw_MouseDown(MouseEventArgs e)
+
+        // функция начала рисования
+        private void Draw_MouseDown()
         {
             drawObj = drawObj.GetInstance();
         }
 
+        // функция рисования
         private void Draw_MouseMove(MouseEventArgs e)
         {
             if(isDraw)
@@ -261,6 +327,7 @@ namespace Paint
             }
         }
 
+        // функция остановки рисования
         private void Draw_MouseUp(MouseEventArgs e)
         {
             if (drawBitmap != null)
@@ -271,6 +338,7 @@ namespace Paint
             isDraw = false;
         }
 
+        // установка заливки
         public void setFillMode(bool isFillMode)
         {
             this.isFill = isFillMode;
@@ -280,11 +348,13 @@ namespace Paint
             }
         }
 
+        // функция вызова заливки
         private void Fill_MouseDown(MouseEventArgs e)
         {
             Fill(e.Location, pen.Color);
         }
 
+        // заливка
         private void Fill(Point selectPixel, Color color)
         {
             Color defaultColor = bitmap.GetPixel(selectPixel.X, selectPixel.Y);
@@ -322,12 +392,14 @@ namespace Paint
     // resize property
     partial class Canvas
     {
+        // константы
         private static readonly int MIN_HEIGHT = 50;
 
         private static readonly int MIN_WIDTH = 50;
 
         private static readonly int SIZE_GRIP = 10;
 
+        // переменные
         private int maxHeight;
 
         private int maxWidth;
@@ -339,17 +411,19 @@ namespace Paint
 
         private bool isResizeY = false;
 
-
+        // установка макимального размера по высоте
         public void setMaxHeight(int height)
         {
             this.maxHeight = height;
         }
 
+        // установка макимального размера по ширине
         public void setMaxWight(int wigth)
         {
             this.maxWidth = wigth;
         }
 
+        // установка макимального размера по высоте и ширине
         public void setMaxSize(Point size)
         {
             setMaxWight(size.X);
@@ -366,6 +440,7 @@ namespace Paint
             return y >= this.Height - SIZE_GRIP;
         }
 
+        // Изменяет флаг размера
         private bool IsResizeMode_MouseDown(MouseEventArgs e)
         {
             isResize = isResizeX = isResizeY = false;
@@ -472,14 +547,17 @@ namespace Paint
             {
                 this.Width = GetResizeWidth(e.X);
                 this.Height = GetResizeHeight(e.Y);
+                OnResize_Event();
             }
             else if (isResizeX)
             {
                 this.Width = GetResizeWidth(e.X);
+                OnResize_Event();
             }
             else if (isResizeY)
             {
                 this.Height = GetResizeHeight(e.Y);
+                OnResize_Event();
             }
         }
 

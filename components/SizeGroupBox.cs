@@ -1,4 +1,5 @@
 ﻿using Paint.Properties;
+using System.Text.RegularExpressions;
 
 namespace Paint.components
 {
@@ -9,6 +10,8 @@ namespace Paint.components
         PictureBox imageBox = new PictureBox();
 
         ComboBox sizeCombobox = new ComboBox();
+
+        public event EventHandler OnSelect;
 
         public SizeGroupBox() 
         {
@@ -30,6 +33,7 @@ namespace Paint.components
             sizeCombobox.Name = "sizeBox";
             sizeCombobox.Size = new Size(60, 30);
 
+            sizeCombobox.SelectedIndexChanged += OnSelect_Change;
             // 
             // imageBox
             // 
@@ -59,6 +63,38 @@ namespace Paint.components
                 sizeCombobox.Items.Add(size);
             }
             sizeCombobox.SelectedItem = sizeCombobox.Items[1];
+        }
+
+        private void OnSelect_Change(object sender, EventArgs e)
+        {
+            int? selectedSize = ValueToNumber(sizeCombobox.SelectedItem.ToString());
+            if(OnSelect != null)
+            {
+                OnSelect.Invoke(selectedSize, EventArgs.Empty);
+            }
+        }
+
+        private int ValueToNumber(string? value)
+        {
+            if(value != null)
+            {
+                Match match = Regex.Match(value, @"\d+");
+
+                if (match.Success)
+                {
+                    if (int.TryParse(match.Value, out int result))
+                    {
+                        return result;
+                    }
+                }
+            }
+
+            return 3;
+        } 
+
+        public int GetSize()
+        {
+            return ValueToNumber(sizeCombobox.SelectedItem.ToString());
         }
     }
 }

@@ -5,35 +5,12 @@ namespace Paint.components
 {
     internal class FigureGroupBox: CustomGroupBox
     {
-        private class Figure
-        {
-            public readonly Image image;
-
-            public readonly IDrawable drawable;
-
-            public Figure(Image image, IDrawable drawable)
-            {
-                this.image = image;
-                this.drawable = drawable;
-            }
-        }
-
-        private static readonly Figure[] DEFAULT_FIGURES = new Figure[]
-        {
-            new Figure(Resources.Line, new Line()),
-            new Figure(Resources.Rectangle, new Drawable.Rectangle()),
-            new Figure(Resources.Circle, new Sircle()),
-            new Figure(Resources.ColourPicker, new Star()),
-            new Figure(Resources.Pen, new Heart()),
-        };
-
+       
         private static readonly string TITLE = "Figures";
 
-        private static readonly Figure DEFAULT_SELECT_FIGURE = 
-            new Figure(Resources.Line, new Line());
+        private static readonly Figure DEFAULT_SELECT_FIGURE = Figure.LINE;
 
-        private static readonly Figure DEFAULT_PREVIOUS_FIGURE = 
-            new Figure(Resources.Rectangle, new Drawable.Rectangle());
+        private static readonly Figure DEFAULT_PREVIOUS_FIGURE = Figure.RECTANGLE;
 
         private ImageButton selectButton;
 
@@ -64,7 +41,7 @@ namespace Paint.components
 
         private void InitDefalutValues()
         {
-            foreach (Figure figure in DEFAULT_FIGURES)
+            foreach (Figure figure in Figure.FIGURES)
             {
                 ImageButton imageButton = new ImageButton();
                 imageButton.Image = figure.image;
@@ -90,11 +67,17 @@ namespace Paint.components
 
         private void OnSelect_Click(object sender, EventArgs e)
         {
-            Figure? figure = ((ImageButton)sender).Tag as Figure;
-            if (figure != null)
-            {
-                OnSelect.Invoke(figure.drawable, e);
-            }
+            OnSelect.Invoke(((ImageButton)sender).Tag as Figure, EventArgs.Empty);
+            //Figure? figure = ((ImageButton)sender).Tag as Figure;
+            //if (figure != null)
+            //{
+            //    OnSelect.Invoke(figure.drawable, e);
+            //}
+        }
+
+        public Figure? GetSelectFigure()
+        {
+            return selectButton.Tag as Figure;
         }
     }
 }

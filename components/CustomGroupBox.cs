@@ -13,25 +13,22 @@ namespace Paint.components
 
         protected Button initSelectButton(Button button)
         {
-            Button selectButton = button;
-            selectButton.Location = new Point(6, 30);
-            selectButton.Name = "buttonSelect";
-            selectButton.FlatStyle = FlatStyle.Standard;
-            selectButton.Size = new Size(32, 32);
-            Controls.Add(selectButton);
-            return selectButton;
+            button.Location = new Point(6, 30);
+            button.Name = "buttonSelect";
+            button.FlatStyle = FlatStyle.Standard;
+            button.Size = new Size(32, 32);
+            Controls.Add(button);
+            return button;
         }
 
         protected Button initPreviousButton(Button button)
         {
-
-            Button previousButton = button;
-            previousButton.Location = new Point(6, 76);
-            previousButton.Name = "buttonPevious";
-            previousButton.Size = new Size(32, 32);
-            previousButton.FlatStyle = FlatStyle.Standard;
-            Controls.Add(previousButton);
-            return previousButton;
+            button.Location = new Point(6, 76);
+            button.Name = "buttonPevious";
+            button.Size = new Size(32, 32);
+            button.FlatStyle = FlatStyle.Standard;
+            Controls.Add(button);
+            return button;
         }
 
         protected FlowLayoutPanel initLayout(FlowLayoutPanel boxPanel)

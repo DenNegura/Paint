@@ -83,5 +83,16 @@ namespace Paint.components.Canvas
             }
             return default(T);
         }
+
+        public bool isEmpty()
+        {
+            return redo.Count == 0;
+        }
+
+        public void Clear()
+        {
+            undo.Clear();
+            redo.Clear();
+        }
     }
 }

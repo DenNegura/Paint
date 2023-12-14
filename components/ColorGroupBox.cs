@@ -55,11 +55,14 @@ namespace Paint.components
 
             previousButton.Click += ChangeColor_Click;
             previousButton.Click += OnSelect_Click;
+
+            colorDialog = new ColorDialog();
             InitDefalutValues();
         }
 
         private void InitDefalutValues()
         {
+            layout.Controls.Add(buttonNewColor);
             foreach (Color color in DEFAULT_COLORS)
             {
                 ColorButton colorButton = new ColorButton();
@@ -77,6 +80,7 @@ namespace Paint.components
                 ColorButton newColorButton = new ColorButton();
                 newColorButton.Color = colorDialog.Color;
                 newColorButton.Click += ChangeColor_Click;
+                newColorButton.Click += OnSelect_Click;
 
                 ColorButton? buttonToRemove = null;
 
@@ -99,6 +103,7 @@ namespace Paint.components
                 }
                 layout.Controls.Add(newColorButton);
                 layout.Controls.SetChildIndex(newColorButton, 1);
+                ChangeColor(newColorButton.Color);
             }
         }
 
