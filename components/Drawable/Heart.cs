@@ -8,49 +8,61 @@ using System.Threading.Tasks;
 
 namespace Paint.components.Drawable
 {
-    internal class Heart : IDrawable
+    internal class Heart : DrawableVars, IDrawable
     {
         public void Draw(Graphics graphics, Pen pen, Point pos1, Point pos2)
         {
-            int x, y, width, height;
-            if (pos2.X >= pos1.X)
-            {
-                x = pos1.X;
-                width = pos2.X - pos1.X;
-            }
-            else
-            {
-                x = pos2.X;
-                width = pos1.X - pos2.X;
-            }
-            if (pos2.Y >= pos1.Y)
-            {
-                y = pos1.Y;
-                height = pos2.Y - pos1.Y;
-            }
-            else
-            {
-                y = pos2.Y;
-                height = pos1.Y - pos2.Y;
-            }
+            Vars vars = CalculateVars(pos1, pos2);
 
             // Пропорциональное изменение координат и размера
-            float heartWidth = width;
-            float heartHeight = height;
-            float centerX = x + width / 2f;
-            float centerY = y + height / 2f;
+            float heartWidth = vars.width;
+            float heartHeight = vars.height;
+            float centerX = vars.x + vars.width / 2f;
+            float centerY = vars.y + vars.height / 2f;
 
             graphics.DrawBezier(pen,
                 centerX, centerY - heartHeight / 3.5f,
-                centerX + heartWidth * 0.2f, y,
-                x + heartWidth, centerY - heartHeight * 0.25f,
-                centerX, y + heartHeight);
+                centerX + heartWidth * 0.2f, vars.y,
+                vars.x + heartWidth, centerY - heartHeight * 0.25f,
+                centerX, vars.y + heartHeight);
             graphics.DrawBezier(pen,
                 centerX, centerY - heartHeight / 3.5f,
-                centerX - heartWidth * 0.2f, y,
-                x, centerY - heartHeight * 0.25f,
-                centerX, y + heartHeight);
+                centerX - heartWidth * 0.2f, vars.y,
+                vars.x, centerY - heartHeight * 0.25f,
+                centerX, vars.y + heartHeight);
         }
+
+        public void Draw(Graphics graphics, Brush brush, Pen pen, Point pos1, Point pos2)
+        {
+            Vars vars = CalculateVars(pos1, pos2);
+
+            // Пропорциональное изменение координат и размера
+            float heartWidth = vars.width;
+            float heartHeight = vars.height;
+            float centerX = vars.x + vars.width / 2f;
+            float centerY = vars.y + vars.height / 2f;
+
+            GraphicsPath graphicsPath = new GraphicsPath();
+
+            PointF point1 = new PointF(centerX, centerY - heartHeight / 3.5f);
+            PointF point2 = new PointF(centerX + heartWidth * 0.2f, vars.y);
+            PointF point3 = new PointF(vars.x + heartWidth, centerY - heartHeight * 0.25f);
+            PointF point4 = new PointF(centerX, vars.y + heartHeight);
+
+            PointF point5 = new PointF(centerX, centerY - heartHeight / 3.5f); 
+            PointF point6 = new PointF(centerX - heartWidth * 0.2f, vars.y); 
+            PointF point7 = new PointF(vars.x, centerY - heartHeight * 0.25f); 
+            PointF point8 = new PointF(centerX, vars.y + heartHeight); 
+
+            graphicsPath.AddBezier(point1, point2, point3, point4);
+            graphicsPath.AddBezier(point5, point6, point7, point8);
+
+            graphics.FillPath(brush, graphicsPath);
+
+            graphics.DrawBezier(pen, point1, point2, point3, point4);
+            graphics.DrawBezier(pen, point5, point6, point7, point8);
+        }
+
 
         public IDrawable GetInstance()
         {

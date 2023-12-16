@@ -1,5 +1,7 @@
 ﻿using Paint.components.Canvas;
 using Paint.components.Drawable;
+using System.Linq;
+using System.Windows.Forms;
 
 namespace Paint
 {
@@ -22,12 +24,16 @@ namespace Paint
 
         private StateHistory<Bitmap> bitmapHistory; // запоминает сосотояние bitmap'ов, функции redo undo
 
+        private RichTextBox textBox;
+
         // константы
         private bool isResize = false; // флаг изменения размера
 
         private bool isFill = false; // флаг заполнения
 
         private bool isDraw = false; // флаг рисования
+
+        private bool isText = false; // флаг написания текста
 
 
         // события
@@ -47,6 +53,12 @@ namespace Paint
             SetBackgroundColor(backgroundColor);
 
             this.Image = bitmap;
+
+            textBox = new RichTextBox();
+            textBox.Visible = false;
+            this.Controls.Add(textBox);
+            textBox.Leave += OnLeave_Event;
+            textBox.TextChanged += OnTextChanged_Event;
 
             this.MouseDown += new MouseEventHandler(this.Canvas_MouseDown);
             this.MouseMove += new MouseEventHandler(this.Canvas_MouseMove);
@@ -101,6 +113,17 @@ namespace Paint
             {
                 Draw_MouseDown();
             }
+            else if(isText)
+            {
+                if(!textBox.Visible)
+                {
+                    WriteText_MouseDown(e);
+                }
+                else
+                {
+                    DrawText_MouseDown();
+                }
+            }
         }
 
         // Обработчик события перетаскивания мыши
@@ -142,8 +165,7 @@ namespace Paint
                     isDraw = false;
                 }
             }
-
-            if (isMouseMoved(e.Location))
+            if ((isText && !textBox.Visible) || isMouseMoved(e.Location))
             {
                 ResizeBitmap();
                 bitmapHistory.SaveState();
@@ -264,14 +286,22 @@ namespace Paint
 
         private Pen pen; // перо
 
+        private Brush brush; // заливка
+
         // Установка объекта рисования 
-        public void setDrawableObject(IDrawable? drawable)
+        public void SetDrawableObject(IDrawable? drawable)
         {
             drawObj = drawable;
             if(drawObj != null)
             {
-                setFillMode(false);
+                SetFillMode(false);
+                SetTextMode(false);
             }
+        }
+
+        public void SetBrush(Brush brush)
+        {
+            this.brush = brush;
         }
 
         // установка пера
@@ -321,7 +351,13 @@ namespace Paint
             {
                 drawBitmap = (Bitmap)bitmap.Clone();
 
-                drawObj.Draw(Graphics.FromImage(drawBitmap), pen, beginMouseLocation, e.Location);
+                if(brush != null)
+                {
+                    drawObj.Draw(Graphics.FromImage(drawBitmap), brush, pen, beginMouseLocation, e.Location);
+                } else
+                {
+                    drawObj.Draw(Graphics.FromImage(drawBitmap), pen, beginMouseLocation, e.Location);
+                }
 
                 Image = drawBitmap;
             }
@@ -339,19 +375,20 @@ namespace Paint
         }
 
         // установка заливки
-        public void setFillMode(bool isFillMode)
+        public void SetFillMode(bool isFillMode)
         {
             this.isFill = isFillMode;
             if (isFillMode)
             {
-                setDrawableObject(null);
+                SetDrawableObject(null);
+                SetTextMode(false);
             }
         }
 
         // функция вызова заливки
         private void Fill_MouseDown(MouseEventArgs e)
         {
-            Fill(e.Location, pen.Color);
+            Fill(e.Location, ((SolidBrush) brush).Color);
         }
 
         // заливка
@@ -388,6 +425,79 @@ namespace Paint
         }
     }
 
+    // write text
+    partial class Canvas
+    {
+        private Font font;
+
+        public void SetFont(Font font)
+        {
+            this.font = font;
+            if(font != null)
+            {
+                textBox.Font = font;
+            }
+        }
+
+        public void SetTextMode(bool isTextMode)
+        {
+            if(font != null)
+            {
+                isText = isTextMode;
+                if(isTextMode)
+                {
+                    SetFillMode(false);
+                    SetDrawableObject(null);
+                }
+            }
+            else
+            {
+                isText = false;
+            }
+        }
+
+        private void WriteText_MouseDown(MouseEventArgs e)
+        {
+            textBox.Location = new Point(e.X, e.Y);
+            textBox.Visible = true;
+            textBox.Focus();
+        }
+
+        private void DrawText_MouseDown()
+        {
+            textBox.Visible = false;
+            if (!string.IsNullOrEmpty(textBox.Text))
+            {
+                graphics.DrawString(textBox.Text, font, new SolidBrush(pen.Color), textBox.Location);
+                textBox.Text = "";
+            }
+        }
+
+        private void OnLeave_Event(object sender, EventArgs e)
+        {
+            textBox.Visible = false;
+        }
+
+        private void OnTextChanged_Event(object sender, EventArgs e)
+        {
+            int width = TextRenderer.MeasureText(textBox.Text, textBox.Font).Width + 20;
+            width = textBox.Location.X + width > Width ? Width - textBox.Location.X : width;
+
+            int height = font.Height * (textBox.Lines.Length + 1);
+            height = textBox.Location.Y + height > Height ? Height - textBox.Location.Y : height;
+
+            textBox.Height = height;
+            textBox.Width = width;
+        }
+
+        private void OpenTextBox(Point location)
+        {
+            textBox.Location = location;
+            textBox.Visible = true;
+            textBox.BackColor = pen.Color;
+            textBox.Focus();
+        }
+    }
 
     // resize property
     partial class Canvas

@@ -26,22 +26,35 @@ namespace Paint
             this.KeyPreview = true;
 
             figureGroupBox.OnSelect += OnSelectFigure;
+
             groupBoxTools.OnSelect += OnSelectTool;
+
             groupBoxColors.OnSelect += OnSelectColor;
-            canvas.OnSelectPixel += OnSelectPixel;
+
             groupBoxSize.OnSelect += OnSelectSize;
+
+            fillFigureGroupBox.OnFigureModeChanged += OnFillChanged;
+
+            stateGroupBox.OnPenColorChanged += OnPenColorChanged;
+            stateGroupBox.OnBrushColorChanged += OnBrushColorChanged;
+
+            fontGroupBox.OnChangeFont += OnChangeFont;
+
             canvas.OnMoveMouse += OnMoveMouse;
             canvas.OnResize += OnResizeCanvas;
+            canvas.OnSelectPixel += OnSelectPixel;
 
             canvas.setMaxHeight(canvasContainer.Height);
             canvas.setMaxWight(canvasContainer.Width);
             OnResizeCanvas(canvas.Size, EventArgs.Empty);
 
-            canvas.setDrawableObject(new Polyline());
+            canvas.SetDrawableObject(new Polyline());
             canvas.SetPen(new Pen(groupBoxColors.getCurrentColor(), groupBoxSize.GetSize()));
 
             stateGroupBox.SetTool(Tool.PEN);
-            stateGroupBox.SetColor(groupBoxColors.getCurrentColor());
+            canvas.SetFont(fontGroupBox.GetFont());
+            stateGroupBox.SetPenColor(groupBoxColors.getCurrentColor());
+            stateGroupBox.SetBrushColor(groupBoxColors.getCurrentColor());
 
             Resize += Form_Resize;
             ReplaceControlPanel();
@@ -61,6 +74,63 @@ namespace Paint
         private void ReplaceControlPanel()
         {
             controlPanel.Location = new Point((controlContainer.Width - controlPanel.Width) / 2, 0);
+        }
+
+        private void OnChangeFont(object? sender, EventArgs e)
+        {
+            Font? font = (Font?)sender;
+            if (font != null)
+            {
+                canvas.SetFont(font);
+            }
+
+        }
+        private void OnFillChanged(object sender, EventArgs e)
+        {
+            if (stateGroupBox.hasFigure())
+            {
+                Figure.Mode mode = (Figure.Mode)sender;
+                if (mode == Figure.Mode.FILL)
+                {
+                    stateGroupBox.IsBrushDisabled(false);
+                    stateGroupBox.IsPenDisabled(true);
+                    canvas.SetPenColor(stateGroupBox.GetBrushColor());
+                }
+                else if (mode == Figure.Mode.BORDER)
+                {
+                    stateGroupBox.IsBrushDisabled(true);
+                    stateGroupBox.IsPenDisabled(false);
+                }
+                else if (mode == Figure.Mode.FILL_BORDER)
+                {
+                    stateGroupBox.IsBrushDisabled(false);
+                    stateGroupBox.IsPenDisabled(false);
+                }
+                stateGroupBox.SetBrushColor(groupBoxColors.getCurrentColor());
+                stateGroupBox.SetPenColor(groupBoxColors.getCurrentColor());
+            }
+        }
+
+        private void OnPenColorChanged(object sender, EventArgs e)
+        {
+            Color color = (Color)sender;
+            if (!color.IsEmpty)
+            {
+                canvas.SetPenColor(color);
+            }
+        }
+
+        private void OnBrushColorChanged(object sender, EventArgs e)
+        {
+            Color color = (Color)sender;
+            if (!color.IsEmpty)
+            {
+                canvas.SetBrush(new SolidBrush(color));
+            }
+            else
+            {
+                canvas.SetBrush(null);
+            }
         }
 
         // слушатель на изменение размера канваса
@@ -106,39 +176,43 @@ namespace Paint
             Figure figure = (Figure)sender;
 
             stateGroupBox.SetFigure(figure);
-            stateGroupBox.SetColor(groupBoxColors.getCurrentColor());
+            stateGroupBox.SetPenColor(groupBoxColors.getCurrentColor());
+            stateGroupBox.SetBrushColor(groupBoxColors.getCurrentColor());
 
-            canvas.setFillMode(false);
-            canvas.setDrawableObject(figure.drawable);
+            canvas.SetFillMode(false);
+            canvas.SetDrawableObject(figure.drawable);
         }
 
         // слушатель на выбор инструмента
         private void OnSelectTool(object sender, EventArgs e)
         {
             Tool tool = (Tool)sender;
-            canvas.setFillMode(false);
+            canvas.SetFillMode(false);
             stateGroupBox.SetTool(tool);
-            stateGroupBox.SetColor(groupBoxColors.getCurrentColor());
+            stateGroupBox.SetPenColor(groupBoxColors.getCurrentColor());
+            stateGroupBox.SetBrushColor(groupBoxColors.getCurrentColor());
             isColourPicker = false;
             switch (tool.tool)
             {
                 case EnumTool.ERASER:
-                    canvas.setDrawableObject(new Polyline());
-                    canvas.SetPenColor(canvas.GetBackroundColor());
-                    stateGroupBox.SetColor(canvas.GetBackroundColor());
+                    canvas.SetDrawableObject(new Polyline());
                     break;
                 case EnumTool.COLOUR_PICKER:
                     isColourPicker = true;
-                    canvas.setFillMode(false);
-                    canvas.setDrawableObject(null);
+                    canvas.SetFillMode(false);
+                    canvas.SetDrawableObject(null);
                     break;
                 case EnumTool.PEN:
-                    canvas.setDrawableObject(new Polyline());
-                    canvas.SetPenColor(groupBoxColors.getCurrentColor());
+                    canvas.SetDrawableObject(new Polyline());
                     break;
                 case EnumTool.FILL:
-                    canvas.setFillMode(true);
+                    canvas.SetFillMode(true);
                     break;
+                case EnumTool.TEXT:
+                    canvas.SetTextMode(true);
+                    break;
+                default:
+                    throw new ArgumentException($"{tool.tool} not faund!");
             }
         }
 
@@ -150,7 +224,8 @@ namespace Paint
                 Color color = (Color)sender;
                 groupBoxColors.setCurrentColor(color);
                 canvas.SetPenColor(color);
-                stateGroupBox.SetColor(color);
+                stateGroupBox.SetPenColor(color);
+                stateGroupBox.SetBrushColor(color);
             }
 
         }
@@ -158,8 +233,8 @@ namespace Paint
         // Слушатель на выбор цвета
         private void OnSelectColor(object sender, EventArgs e)
         {
-            stateGroupBox.SetColor((Color)sender);
-            canvas.SetPenColor((Color)sender);
+            stateGroupBox.SetPenColor((Color)sender);
+            stateGroupBox.SetBrushColor((Color)sender);
         }
 
         // слкшвтель на нажатие на клавиатуру
@@ -185,7 +260,7 @@ namespace Paint
                 {
                     SaveFileItem_Click(sender, e);
                 }
-                else if(result == DialogResult.No)
+                else if (result == DialogResult.No)
                 {
                     canvas.Clear();
                 }
@@ -223,14 +298,14 @@ namespace Paint
         // открытие изображения
         private void OpenFileItem_Click(object sender, EventArgs e)
         {
-            if(!canvas.isEmpty())
+            if (!canvas.isEmpty())
             {
                 DialogResult result = OpenQiestionDialog(Q_SAVE_CANVAS);
                 if (result == DialogResult.Yes)
                 {
                     SaveFileItem_Click(sender, e);
                 }
-                else if(result == DialogResult.Cancel)
+                else if (result == DialogResult.Cancel)
                 {
                     return;
                 }

@@ -15,5 +15,7 @@ namespace Paint.components.Tools
         ERASER,
 
         COLOUR_PICKER,
+
+        TEXT,
     }
 }

@@ -24,6 +24,15 @@ namespace Paint.components.Drawable
             }
         }
 
+        public void Draw(Graphics graphics, Brush brush, Pen pen, Point pos1, Point pos2)
+        {
+            points.Add(pos2);
+            if (points.Count > 1)
+            {
+                graphics.DrawLines(pen, points.ToArray());
+            }
+        }
+
         public IDrawable GetInstance()
         {
             return new Polyline();
