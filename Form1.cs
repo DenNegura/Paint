@@ -195,6 +195,7 @@ namespace Paint
             switch (tool.tool)
             {
                 case EnumTool.ERASER:
+                    stateGroupBox.SetPenColor(canvas.GetBackroundColor());
                     canvas.SetDrawableObject(new Polyline());
                     break;
                 case EnumTool.COLOUR_PICKER:
